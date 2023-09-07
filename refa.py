@@ -113,6 +113,10 @@ def find_optimal_loan(principal_loan_amount, LTV, PMI_rate_per_100k, home_insura
     high = 20 * principal_loan_amount
     if DEBUG:
         st.write("start guess!!!!!!!!!!!!!!!!!!withhigh, landshare", high,land_share)
+        print("find_optimal_loan called, inputs are:")
+        print("principal_loan_amount, LTV, PMI_rate_per_100k, home_insurance_rate_monthly, property_tax_rate_month, r, n, monthly_debt, DTI_backend,DTI_front, monthly_income, land_share, land_lease_rate")
+        print(principal_loan_amount, LTV, PMI_rate_per_100k, home_insurance_rate_monthly, property_tax_rate_month, r, n, monthly_debt, DTI_backend,DTI_front, monthly_income, land_share, land_lease_rate)
+
     while high - low > 1:
         mid = (high + low) / 2
 
@@ -125,6 +129,7 @@ def find_optimal_loan(principal_loan_amount, LTV, PMI_rate_per_100k, home_insura
             low = mid
             if DEBUG:
                 st.write("total_monthly_payments,low,mid,high",total_monthly_payments,low,mid,high)
+                print("total_monthly_payments,low,mid,high",total_monthly_payments,low,mid,high)
         else:
             high = mid
             if DEBUG:
@@ -159,7 +164,7 @@ def combined_home_affordability_app(title, land_lease_flag):
     DTI_front = st.sidebar.number_input("Front-endDTI (%)", min_value=0.0, step=0.1, value=33.0)
     DTI_back = st.sidebar.number_input("Back-end DTI (%)", min_value=0.0, step=0.1, value=45.0)
     property_tax_rate = st.sidebar.number_input("property_tax_rate (%)", min_value=0.0, step=0.01,
-                                                value=0.0833314 * 12) / 100
+                                                value=1.0) / 100
     PMI_rate = st.sidebar.number_input("PMI_rate ($per 100K)", min_value=0, step=1, value=65)
     annual_home_insurance_rate = st.sidebar.number_input("annual_home_insurance rate per 1000", min_value=0.0000,
                                                          step=0.1, value=3.5) / 1000
@@ -184,7 +189,7 @@ def combined_home_affordability_app(title, land_lease_flag):
                                  property_tax_rate_month, interest_rate / 1200, loan_term * 12, monthly_debt,
                                  DTI_back / 100, DTI_front / 100, annual_income / 12, land_share, land_lease_rate)
         max_home_price_with_piti = (max_loan / LTV) / (1 - land_share)
-        st.write("with lease: loan and home price are", max_loan, max_home_price_with_piti)
+        #st.write("with lease: loan and home price are", max_loan, max_home_price_with_piti)
         if max_loan > 0:
             affordability = 100 * (
                     max_home_price_with_piti - max_home_price_without_land_lease) / max_home_price_without_land_lease
@@ -211,7 +216,7 @@ def combined_home_affordability_app(title, land_lease_flag):
     if land_lease_flag:
         total_monthly_pay = max_loan_without_land_lease * PMI_rate_per_100k + max_home_price_without_land_lease * home_insurance_rate_monthly + max_home_price_without_land_lease * property_tax_rate_month+ compute_monthly_mortgage(max_loan_without_land_lease, interest_rate / 1200, loan_term * 12)
         total_monthly_pay_with_lease = max_loan * PMI_rate_per_100k + max_home_price_with_piti * home_insurance_rate_monthly + max_home_price_with_piti * property_tax_rate_month + max_home_price_with_piti * land_share * land_lease_rate / 12 + compute_monthly_mortgage(max_loan, interest_rate / 1200, loan_term * 12)
-
+        st.write("DTI Front and DTI Back", round(total_monthly_pay_with_lease/(annual_income/12),6), round((total_monthly_pay_with_lease+monthly_debt)/(annual_income/12),6))
         data = [{
             "Condition": "Without Land Lease",
             "Loan Amount": int(max_loan_without_land_lease),
