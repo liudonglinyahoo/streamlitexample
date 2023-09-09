@@ -12,7 +12,7 @@ def main():
     timenow = datetime.now()
     st.write('lastupdate', timenow)
     # Add a choice prompt to select the app
-    app_choice = st.sidebar.radio("Select:", ("home_price_calculator_land_lease","Replicate_Guild_Home_Affordability","Property and Land Value App"))
+    app_choice = st.sidebar.radio("Select:", ("home_price_calculator_land_lease","Replicate_Guild_Home_Affordability","Property and Land Value App","home_affordability_payment_app"))
 
     if app_choice == "Property and Land Value App":
         property_land_value_app()
@@ -20,6 +20,8 @@ def main():
         combined_home_affordability_app("Replicate_Guild_Home_Affordability", False)
     elif app_choice == "home_price_calculator_land_lease":
         combined_home_affordability_app("home_price_calculator_land_lease", True)
+    elif app_choice == "home_affordability_payment_app":
+        home_affordability_payment_app()
 def property_land_value_app():
     st.title("Property and Land Values-App")
     # Prompt user to enter the password
@@ -238,5 +240,76 @@ def combined_home_affordability_app(title, land_lease_flag):
             "Land Lease Monthly":  int(max_home_price_with_piti * land_share * land_lease_rate / 12)}
         ]
         st.table(data)
+def home_affordability_payment_app():
+    st.title("Monthly payment Calculator")
+    # start from home price as input, use down payment percent to calculate loan amount
+    # use loan amount to calculate monthly payment
+    # use monthly payment and income to calculate DTIs
+
+    home_price = st.sidebar.number_input("Home Price K", min_value=0, step=10, value=500)*1000
+    down_payment_percent = st.sidebar.number_input("Down Payment (%)", min_value=0.0, step=0.1, value=5.0) / 100
+    land_share = st.sidebar.number_input("Land Share", min_value=0, step=1, value=25)/100
+    land_lease_rate = st.sidebar.number_input("Land Lease Rate (%)", min_value=0.0, step=0.05, value=4.75)/100
+    LTV = 1 - down_payment_percent
+    interest_rate = st.sidebar.number_input("Interest Rate (%)", min_value=0.0, step=0.1, value=7.5)
+    loan_term = st.sidebar.number_input("Loan Term (Years)", min_value=1, max_value=50, step=1, value=30)
+    # DTI_front = st.sidebar.number_input("Front-endDTI (%)", min_value=0.0, step=0.1, value=33.0)
+    # DTI_back = st.sidebar.number_input("Back-end DTI (%)", min_value=0.0, step=0.1, value=45.0)
+    property_tax_rate = st.sidebar.number_input("property_tax_rate (%)", min_value=0.0, step=0.01,
+                                                value=1.0) / 100
+    PMI_rate = st.sidebar.number_input("PMI_rate ($per 100K)", min_value=0, step=1, value=65)
+    annual_home_insurance_rate = st.sidebar.number_input("annual_home_insurance rate per 1000", min_value=0.0000,
+                                                         step=0.1, value=3.5) / 1000
+
+    annual_income = st.sidebar.number_input("Annual Income", min_value=0, step=500, value=120000)
+    monthly_debt = st.sidebar.number_input("Monthly Debt", min_value=0, step=50, value=1200)
+
+    PMI_rate_per_100k = PMI_rate / 100000
+    property_tax_rate_month = property_tax_rate / 12
+    home_insurance_rate_monthly = annual_home_insurance_rate / 12
+
+    max_loan_without_land_lease= home_price * LTV
+    max_loan_with_land_lease = home_price * (1-land_share) * LTV
+
+    mortgage_insurance_monthly = max_loan_without_land_lease * PMI_rate_per_100k
+    home_insurance_monthly = home_price * home_insurance_rate_monthly
+    property_tax_monthly = home_price * property_tax_rate_month
+    monthly_mortgageP_I = compute_monthly_mortgage(max_loan_without_land_lease, interest_rate / 1200, loan_term * 12)
+    total_monthly_pay = home_insurance_monthly + property_tax_monthly + monthly_mortgageP_I + mortgage_insurance_monthly
+
+    monthly_lease =home_price * land_share * land_lease_rate / 12
+    mortgage_insurance_monthly_l = max_loan_with_land_lease * PMI_rate_per_100k
+    home_insurance_monthly_l = home_price * home_insurance_rate_monthly
+    property_tax_monthly_l = home_price * property_tax_rate_month
+    monthly_mortgageP_I_l = compute_monthly_mortgage(max_loan_with_land_lease, interest_rate / 1200, loan_term * 12)
+    total_monthly_pay_l = home_insurance_monthly + property_tax_monthly + monthly_mortgageP_I + mortgage_insurance_monthly + monthly_lease
+
+    monthly_pay_saving = 100 * (
+                    total_monthly_pay_l - total_monthly_pay) / total_monthly_pay
+    st.write("monthly_pay_saving", monthly_pay_saving)
+    #st.write("DTI Front and DTI Back", round(tota/(annual_income/12),6), round((total_monthly_pay_with_lease+monthly_debt)/(annual_income/12),6))
+    data = [{
+            "Condition": "Without Land Lease",
+            "Loan Amount": int(max_loan_without_land_lease),
+            "Home Price": int(home_price),
+            "down payment": int(home_price * down_payment_percent),
+            "Total monthly payment": int(total_monthly_pay),
+            "PMI Monthly": int(mortgage_insurance_monthly),
+            "Home Insurance": int(home_insurance_monthly),
+            "Property Tax Monthly": int(property_tax_monthly),
+            "Mortgage P&I": int( monthly_mortgageP_I),
+            "Land Lease Monthly": 0},
+            {"Condition": "With Land Lease",
+            "Loan Amount": int(max_loan_with_land_lease),
+            "Home Price": int(home_price),
+            "down payment": int(max_loan_with_land_lease * down_payment_percent),
+            "Total monthly payment":int(total_monthly_pay_l),
+            "PMI Monthly": int(mortgage_insurance_monthly_l),
+            "Home Insurance": int(home_insurance_monthly_l),
+            "Property Tax Monthly": int(property_tax_monthly_l),
+            "Mortgage P&I": int( monthly_mortgageP_I_l),
+            "Land Lease Monthly":  int(monthly_lease)}
+        ]
+    st.table(data)
 if __name__ == "__main__":
     main()
