@@ -282,11 +282,11 @@ def home_affordability_payment_app():
     home_insurance_monthly_l = home_price * home_insurance_rate_monthly
     property_tax_monthly_l = home_price * property_tax_rate_month
     monthly_mortgageP_I_l = compute_monthly_mortgage(max_loan_with_land_lease, interest_rate / 1200, loan_term * 12)
-    total_monthly_pay_l = home_insurance_monthly + property_tax_monthly + monthly_mortgageP_I + mortgage_insurance_monthly + monthly_lease
-
-    monthly_pay_saving = 100 * (
-                    total_monthly_pay_l - total_monthly_pay) / total_monthly_pay
-    st.write("monthly_pay_saving", monthly_pay_saving)
+    total_monthly_pay_l = home_insurance_monthly_l + property_tax_monthly_l + monthly_mortgageP_I_l + mortgage_insurance_monthly_l + monthly_lease
+    monthly_pay_saving_p = 100 * (
+        total_monthly_pay- total_monthly_pay_l  ) / total_monthly_pay
+    monthly_pay_saving = -(total_monthly_pay_l - total_monthly_pay)
+    st.write("monthly_pay_saving and percentage( %)", monthly_pay_saving, monthly_pay_saving_p )
     #st.write("DTI Front and DTI Back", round(tota/(annual_income/12),6), round((total_monthly_pay_with_lease+monthly_debt)/(annual_income/12),6))
     data = [{
             "Condition": "Without Land Lease",
@@ -310,6 +310,7 @@ def home_affordability_payment_app():
             "Mortgage P&I": int( monthly_mortgageP_I_l),
             "Land Lease Monthly":  int(monthly_lease)}
         ]
-    st.table(data)
+    df = pd.DataFrame(data)
+    st.write(df.to_html(index=False), unsafe_allow_html=True)
 if __name__ == "__main__":
     main()
