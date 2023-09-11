@@ -12,7 +12,7 @@ def main():
     timenow = datetime.now()
     st.write('lastupdate', timenow)
     # Add a choice prompt to select the app
-    app_choice = st.sidebar.radio("Select:", ("home_price_calculator_land_lease","Replicate_Guild_Home_Affordability","Property and Land Value App","home_affordability_payment_app"))
+    app_choice = st.sidebar.radio("Select:", ("home_price_calculator_land_lease","land lease benefit-payment","Replicate_Guild_Home_Affordability","Property and Land Value App"))
 
     if app_choice == "Property and Land Value App":
         property_land_value_app()
@@ -20,7 +20,7 @@ def main():
         combined_home_affordability_app("Replicate_Guild_Home_Affordability", False)
     elif app_choice == "home_price_calculator_land_lease":
         combined_home_affordability_app("home_price_calculator_land_lease", True)
-    elif app_choice == "home_affordability_payment_app":
+    elif app_choice == "land lease benefit-payment":
         home_affordability_payment_app()
 def property_land_value_app():
     st.title("Property and Land Values-App")
@@ -239,14 +239,17 @@ def combined_home_affordability_app(title, land_lease_flag):
             "Mortgage P&I": int( compute_monthly_mortgage(max_loan, interest_rate / 1200, loan_term * 12)),
             "Land Lease Monthly":  int(max_home_price_with_piti * land_share * land_lease_rate / 12)}
         ]
-        st.table(data)
+        df = pd.DataFrame(data)
+        st.write(df.to_html(index=False), unsafe_allow_html=True)
+    else:
+        st.write("something wrong with your input, please check again")
 def home_affordability_payment_app():
     st.title("Monthly payment Calculator")
     # start from home price as input, use down payment percent to calculate loan amount
     # use loan amount to calculate monthly payment
     # use monthly payment and income to calculate DTIs
 
-    home_price = st.sidebar.number_input("Home Price K", min_value=0, step=10, value=500)*1000
+    home_price = st.sidebar.number_input("Home Price", min_value=0, step=10000, value=500000)
     down_payment_percent = st.sidebar.number_input("Down Payment (%)", min_value=0.0, step=0.1, value=5.0) / 100
     land_share = st.sidebar.number_input("Land Share", min_value=0, step=1, value=25)/100
     land_lease_rate = st.sidebar.number_input("Land Lease Rate (%)", min_value=0.0, step=0.05, value=4.75)/100
@@ -290,8 +293,8 @@ def home_affordability_payment_app():
     #st.write("DTI Front and DTI Back", round(tota/(annual_income/12),6), round((total_monthly_pay_with_lease+monthly_debt)/(annual_income/12),6))
     data = [{
             "Condition": "Without Land Lease",
-            "Loan Amount": int(max_loan_without_land_lease),
             "Home Price": int(home_price),
+            "Loan Amount": int(max_loan_without_land_lease),
             "down payment": int(home_price * down_payment_percent),
             "Total monthly payment": int(total_monthly_pay),
             "PMI Monthly": int(mortgage_insurance_monthly),
@@ -300,8 +303,8 @@ def home_affordability_payment_app():
             "Mortgage P&I": int( monthly_mortgageP_I),
             "Land Lease Monthly": 0},
             {"Condition": "With Land Lease",
-            "Loan Amount": int(max_loan_with_land_lease),
             "Home Price": int(home_price),
+            "Loan Amount": int(max_loan_with_land_lease),
             "down payment": int(max_loan_with_land_lease * down_payment_percent),
             "Total monthly payment":int(total_monthly_pay_l),
             "PMI Monthly": int(mortgage_insurance_monthly_l),
