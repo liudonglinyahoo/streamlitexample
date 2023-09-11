@@ -256,8 +256,6 @@ def home_affordability_payment_app():
     LTV = 1 - down_payment_percent
     interest_rate = st.sidebar.number_input("Interest Rate (%)", min_value=0.0, step=0.1, value=7.5)
     loan_term = st.sidebar.number_input("Loan Term (Years)", min_value=1, max_value=50, step=1, value=30)
-    # DTI_front = st.sidebar.number_input("Front-endDTI (%)", min_value=0.0, step=0.1, value=33.0)
-    # DTI_back = st.sidebar.number_input("Back-end DTI (%)", min_value=0.0, step=0.1, value=45.0)
     property_tax_rate = st.sidebar.number_input("property_tax_rate (%)", min_value=0.0, step=0.01,
                                                 value=1.0) / 100
     PMI_rate = st.sidebar.number_input("PMI_rate ($per 100K)", min_value=0, step=1, value=65)
@@ -289,7 +287,7 @@ def home_affordability_payment_app():
     monthly_pay_saving_p = 100 * (
         total_monthly_pay- total_monthly_pay_l  ) / total_monthly_pay
     monthly_pay_saving = -(total_monthly_pay_l - total_monthly_pay)
-    st.write("monthly_pay_saving and percentage( %)", monthly_pay_saving, monthly_pay_saving_p )
+    st.write("Initial monthly_pay_saving and percentage( %)", monthly_pay_saving, monthly_pay_saving_p )
     #st.write("DTI Front and DTI Back", round(tota/(annual_income/12),6), round((total_monthly_pay_with_lease+monthly_debt)/(annual_income/12),6))
     data = [{
             "Condition": "Without Land Lease",
