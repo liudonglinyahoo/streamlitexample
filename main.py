@@ -11,6 +11,23 @@ def main():
     # get date and time to hour and minute now
     timenow = datetime.now()
     st.write('lastupdate', timenow)
+    st.markdown(
+        """
+    < !-- Google
+    tag(gtag.js) -->
+    < script async src = "https://www.googletagmanager.com/gtag/js?id=G-6S0Y85KQZQ" > < / script >
+    < script >
+    window.dataLayer = window.dataLayer | | [];
+    function
+    gtag()
+    {dataLayer.push(arguments);}
+    gtag('js', new
+    Date());
+
+    gtag('config', 'G-6S0Y85KQZQ');
+
+< / script >
+    """, unsafe_allow_html=True)
     # Add a choice prompt to select the app
     app_choice = st.sidebar.radio("Select:", ("home_price_calculator_land_lease","land lease benefit-payment","Replicate_Guild_Home_Affordability","Property and Land Value App"))
 
