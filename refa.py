@@ -323,7 +323,10 @@ def combined_home_affordability_app(title, land_lease_flag):
             "Land Lease Monthly":  int(max_home_price_with_piti * land_share * land_lease_rate / 12)}
         ]
         df = pd.DataFrame(data)
+
         st.write(df.to_html(index=False), unsafe_allow_html=True)
+
+
     else:
         st.write("something wrong with your input, please check again")
 def home_affordability_payment_app():
@@ -370,7 +373,13 @@ def home_affordability_payment_app():
     monthly_pay_saving_p = 100 * (
         total_monthly_pay- total_monthly_pay_l  ) / total_monthly_pay
     monthly_pay_saving = -(total_monthly_pay_l - total_monthly_pay)
-    st.write("Initial monthly_pay_saving and percentage( %)", monthly_pay_saving, monthly_pay_saving_p )
+
+    st.markdown(
+        f"<h3>Based on your inputs, with land lease your initial monthly pay saving is ${int(monthly_pay_saving):,} ({monthly_pay_saving_p/100:.2%})</h3>",
+        unsafe_allow_html=True
+    )
+
+    #st.write("Initial monthly_pay_saving and percentage( %)", monthly_pay_saving, monthly_pay_saving_p )
     #st.write("DTI Front and DTI Back", round(tota/(annual_income/12),6), round((total_monthly_pay_with_lease+monthly_debt)/(annual_income/12),6))
     data = [{
             "Condition": "Without Land Lease",

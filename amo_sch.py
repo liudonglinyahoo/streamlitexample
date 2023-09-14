@@ -124,4 +124,5 @@ if __name__ == '__main__':
   else:
       print(f"Zip Code {input_zipcode} not found in the data.")
 
+
   # print(amortization_schedule)
