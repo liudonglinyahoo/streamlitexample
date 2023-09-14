@@ -74,7 +74,7 @@ def property_zip_code():
     #password = st.text_input("Enter your email as password", type="password")
 
     # address_line_1 = st.text_input("Enter Address Line 1 like 517 N Chugach St:")
-    zip_code = st.text_input("Enter Zip Code:")
+    zip_code = st.text_input("Enter Zip Code in Denver:")
 
     data = {
         "zipcode": [
@@ -140,8 +140,9 @@ def property_zip_code():
         #st.write(data_dict.get(input_zipcode))
         corresponding_landshare = data_dict.get(input_zipcode)
         #st.write(corresponding_landshare)
+
         if corresponding_landshare is not None:
-            st.write(f"Zip Code: {input_zipcode}, Estimated Land Share: {corresponding_landshare}")
+            st.write(f"Zip Code: {input_zipcode}, Our program will cover Land Share: {corresponding_landshare}")
         else:
             st.write(f"Zip Code {input_zipcode} not found in the data.")
 
@@ -375,7 +376,7 @@ def home_affordability_payment_app():
     monthly_pay_saving = -(total_monthly_pay_l - total_monthly_pay)
 
     st.markdown(
-        f"<h3>Based on your inputs, with land lease your initial monthly pay saving is ${int(monthly_pay_saving):,} ({monthly_pay_saving_p/100:.2%})</h3>",
+        f"<h3>Based on your inputs, with land lease program, your initial monthly payment saving is ${int(monthly_pay_saving):,} ({monthly_pay_saving_p/100:.2%} )see table below for details:</h3>",
         unsafe_allow_html=True
     )
 
