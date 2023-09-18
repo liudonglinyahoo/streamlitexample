@@ -74,7 +74,8 @@ def property_zip_code():
     #password = st.text_input("Enter your email as password", type="password")
 
     # address_line_1 = st.text_input("Enter Address Line 1 like 517 N Chugach St:")
-    zip_code = st.text_input("Enter Zip Code in Denver then click submit:")
+    zip_code = st.number_input("Any Denver Zip code", min_value=80000, step=1, value=80001)
+    st.write('You entered:', zip_code)
 
     data = {
         "zipcode": [
@@ -128,31 +129,27 @@ def property_zip_code():
     }
 
     data_dict = dict(zip(data["zipcode"], data["land_share"]))
-    #st.write(data_dict)
-    # Display a Submit button
-    if st.button("Submit"):
 
-        # Input zipcode
-        #st.write(zip_code)
-        input_zipcode = int(zip_code) # Replace this with your desired zipcode
+    input_zipcode = int(zip_code) # Replace this with your desired zipcode
 
-        # Find the corresponding landshare using the dictionary
-        #st.write(data_dict.get(input_zipcode))
-        corresponding_landshare = data_dict.get(input_zipcode)
-        if corresponding_landshare is not None:
+    # Find the corresponding landshare using the dictionary
+    #st.write(data_dict.get(input_zipcode))
+    corresponding_landshare = data_dict.get(input_zipcode)
+    print(corresponding_landshare)
+    if corresponding_landshare is not None:
 
-            if corresponding_landshare >0.35:
-                corresponding_landshare = 0.35
-                st.write(f"Zip Code: {input_zipcode}, Our program will cover Land Share: {corresponding_landshare}")
-            elif corresponding_landshare<0.15:
-                st.write(f"Zip Code: {input_zipcode}, the land share is {corresponding_landshare}, which is too low for our program to make a meaningful impact.")
+        if corresponding_landshare >0.35:
+            corresponding_landshare = 0.35
+            st.write(f"Zip Code: {input_zipcode}, Our program will cover Land Share: {corresponding_landshare}")
+        elif corresponding_landshare<0.15:
+            st.write(f"Zip Code: {input_zipcode}, the land share is {corresponding_landshare}, which is too low for our program to make a meaningful impact.")
         else:
-            st.write(f"Zip Code: {input_zipcode}, we don't have data for this zipcode. Please try another one.")
-
+            st.write(f"Zip Code: {input_zipcode}, Our program will cover Land Share: {corresponding_landshare}")
 
     else:
-        st.write("Click the Submit button to get the estimated land share for a given zipcode.")
-    #st.table(data)
+        st.write(f"Zip Code: {input_zipcode}, we don't have data for this zipcode. Please try another one.")
+
+
 def get_property_data(endpoint, address, zip_code, password):
     base_url = "https://api.housecanary.com/v2/property/"
     auth = (username, password)
