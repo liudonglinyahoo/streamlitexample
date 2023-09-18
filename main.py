@@ -74,7 +74,7 @@ def property_zip_code():
     #password = st.text_input("Enter your email as password", type="password")
 
     # address_line_1 = st.text_input("Enter Address Line 1 like 517 N Chugach St:")
-    zip_code = st.text_input("Enter Zip Code in Denver:")
+    zip_code = st.text_input("Enter Zip Code in Denver then click submit:")
 
     data = {
         "zipcode": [
