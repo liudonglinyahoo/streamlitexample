@@ -139,12 +139,16 @@ def property_zip_code():
         # Find the corresponding landshare using the dictionary
         #st.write(data_dict.get(input_zipcode))
         corresponding_landshare = data_dict.get(input_zipcode)
-        #st.write(corresponding_landshare)
-
         if corresponding_landshare is not None:
-            st.write(f"Zip Code: {input_zipcode}, Our program will cover Land Share: {corresponding_landshare}")
+
+            if corresponding_landshare >0.35:
+                corresponding_landshare = 0.35
+                st.write(f"Zip Code: {input_zipcode}, Our program will cover Land Share: {corresponding_landshare}")
+            elif corresponding_landshare<0.15:
+                st.write(f"Zip Code: {input_zipcode}, the land share is {corresponding_landshare}, which is too low for our program to make a meaningful impact.")
         else:
-            st.write(f"Zip Code {input_zipcode} not found in the data.")
+            st.write(f"Zip Code: {input_zipcode}, we don't have data for this zipcode. Please try another one.")
+
 
     else:
         st.write("Click the Submit button to get the estimated land share for a given zipcode.")
