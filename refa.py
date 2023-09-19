@@ -12,7 +12,7 @@ def main():
     timenow = datetime.now()
     st.write('lastupdate', timenow)
     # Add a choice prompt to select the app
-    app_choice = st.sidebar.radio("Select:", ("home_price_calculator_land_lease","land lease benefit-payment","Replicate_Guild_Home_Affordability","Property and Land Value App","Denver land share by zip code"))
+    app_choice = st.sidebar.radio("Select:", ("home_price_calculator_land_lease","land lease benefit-payment","Property and Land Value App","Denver land share by zip code"))
 
     if app_choice == "Property and Land Value App":
         property_land_value_app()
@@ -29,7 +29,7 @@ def main():
 def property_land_value_app():
     st.title("Property and Land Values-App")
     # Prompt user to enter the password
-    password = st.text_input("Enter your password:(DL sent email)", type="password")
+    password = st.text_input("Enter your password:(email ghyproductteam@ghyimpact.com for password)", type="password")
 
     address_line_1 = st.text_input("Enter Address Line 1 like 517 N Chugach St:")
     zip_code = st.text_input("Enter Zip Code:")

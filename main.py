@@ -12,13 +12,13 @@ def main():
     timenow = datetime.now()
     st.write('lastupdate', timenow)
     # Add a choice prompt to select the app
-    app_choice = st.sidebar.radio("Select:", ("home_price_calculator_land_lease","land lease benefit-payment","Replicate_Guild_Home_Affordability","Property and Land Value App","Denver land share by zip code"))
+    app_choice = st.sidebar.radio("Select:", ("Show affordability boost by Land lease program","land lease benefit-payment","Property and Land Value App","Denver land share by zip code"))
 
     if app_choice == "Property and Land Value App":
         property_land_value_app()
     elif app_choice == "Replicate_Guild_Home_Affordability":
         combined_home_affordability_app("Replicate_Guild_Home_Affordability", False)
-    elif app_choice == "home_price_calculator_land_lease":
+    elif app_choice == "Show affordability boost by Land lease program":
         combined_home_affordability_app("home_price_calculator_land_lease", True)
     elif app_choice == "land lease benefit-payment":
         home_affordability_payment_app()
@@ -29,7 +29,7 @@ def main():
 def property_land_value_app():
     st.title("Property and Land Values-App")
     # Prompt user to enter the password
-    password = st.text_input("Enter your password:(DL sent email)", type="password")
+    password = st.text_input("Enter your password:(email ghyproductteam@ghyimpact.com for password)", type="password")
 
     address_line_1 = st.text_input("Enter Address Line 1 like 517 N Chugach St:")
     zip_code = st.text_input("Enter Zip Code:")
@@ -140,11 +140,11 @@ def property_zip_code():
 
         if corresponding_landshare >0.35:
             corresponding_landshare = 0.35
-            st.write(f"Zip Code: {input_zipcode}, Our program will cover Land Share: {corresponding_landshare}")
+            st.write(f"Zip Code: {input_zipcode}. Our program will cover Land Share: {corresponding_landshare}")
         elif corresponding_landshare<0.15:
             st.write(f"Zip Code: {input_zipcode}, the land share is {corresponding_landshare}, which is too low for our program to make a meaningful impact.")
         else:
-            st.write(f"Zip Code: {input_zipcode}, Our program will cover Land Share: {corresponding_landshare}")
+            st.write(f"Zip Code: {input_zipcode}. Our program will cover Land Share: {corresponding_landshare}")
 
     else:
         st.write(f"Zip Code: {input_zipcode}, we don't have data for this zipcode. Please try another one.")
