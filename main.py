@@ -12,13 +12,13 @@ def main():
     timenow = datetime.now()
     st.write('lastupdate', timenow)
     # Add a choice prompt to select the app
-    app_choice = st.sidebar.radio("Select:", ("Show affordability boost by Land lease program","land lease benefit-payment","Property and Land Value App","Denver land share by zip code"))
+    app_choice = st.sidebar.radio("Select:", ("home_price_calculator_land_lease","land lease benefit-payment","Property and Land Value App","Denver land share by zip code"))
 
     if app_choice == "Property and Land Value App":
         property_land_value_app()
     elif app_choice == "Replicate_Guild_Home_Affordability":
         combined_home_affordability_app("Replicate_Guild_Home_Affordability", False)
-    elif app_choice == "Show affordability boost by Land lease program":
+    elif app_choice == "home_price_calculator_land_lease":
         combined_home_affordability_app("home_price_calculator_land_lease", True)
     elif app_choice == "land lease benefit-payment":
         home_affordability_payment_app()
@@ -140,11 +140,11 @@ def property_zip_code():
 
         if corresponding_landshare >0.35:
             corresponding_landshare = 0.35
-            st.write(f"Zip Code: {input_zipcode}. Our program will cover Land Share: {corresponding_landshare}")
+            st.write(f"Zip Code: {input_zipcode}, Our program will cover Land Share: {corresponding_landshare}")
         elif corresponding_landshare<0.15:
             st.write(f"Zip Code: {input_zipcode}, the land share is {corresponding_landshare}, which is too low for our program to make a meaningful impact.")
         else:
-            st.write(f"Zip Code: {input_zipcode}. Our program will cover Land Share: {corresponding_landshare}")
+            st.write(f"Zip Code: {input_zipcode}, Our program will cover Land Share: {corresponding_landshare}")
 
     else:
         st.write(f"Zip Code: {input_zipcode}, we don't have data for this zipcode. Please try another one.")
@@ -331,6 +331,43 @@ def combined_home_affordability_app(title, land_lease_flag):
 
     else:
         st.write("something wrong with your input, please check again")
+
+    st.write("Show Lease Payment Schedule for first 10 years")
+         #calculate monthly payment increase every 6 months and land price increase every 6 months
+    leasepay_schedule = generate_leasepay_schedule(land_share*max_home_price_with_piti, land_lease_rate, 0.012, 10)
+    df = pd.DataFrame(leasepay_schedule)
+    #format df's first two columns to integer
+
+    for col in df.columns[:4]:
+         df[col] = df[col].astype(int)
+    # df['month'] = df['month'].astype(int)
+    # df['Land Value'] = df['Land Value'].astype(int)
+    # df['monthly_Lease Payment'] = df['monthly_Lease Payment'].astype(int)
+    # df['increase dollar'] = df['increase dollar'].astype(int)
+
+    st.write(df.to_html(index=False), unsafe_allow_html=True)
+
+
+def generate_leasepay_schedule(land_value, lease_rate, CPI_halfyear, years):
+    leasepay_schedule = pd.DataFrame(columns=[
+        'month', 'Land Value/Right to purchase',  'monthly_Lease Payment', 'Payment adjustment $ as Land Value appreciates(CPI)', 'increase percent'])
+
+    for p in range(0, years*2):
+        month =p*6
+
+        if month == 0:
+            last_month_lease_payment = land_value * lease_rate / 12
+            new_land_value=land_value
+        else:
+            last_month_lease_payment = leasepay_schedule.loc[month-6, 'monthly_Lease Payment']
+            new_land_value = land_value * (1 + CPI_halfyear) ** p
+        monthly_lease_payment = new_land_value * lease_rate / 12
+        increase_dollar = monthly_lease_payment - last_month_lease_payment
+        increase_percent = increase_dollar / last_month_lease_payment
+        #st.write(month, new_land_value, monthly_lease_payment, last_month_lease_payment,increase_dollar, increase_percent)
+        leasepay_schedule.loc[month] = [month, new_land_value, monthly_lease_payment, increase_dollar, increase_percent]
+
+    return leasepay_schedule
 def home_affordability_payment_app():
     st.title("Monthly payment Calculator")
     # start from home price as input, use down payment percent to calculate loan amount
