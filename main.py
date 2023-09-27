@@ -11,13 +11,13 @@ username = "55Y1IHCUYC2L8DXJODDZ"
 def authenticate():
     users = ["GuildLO1", "GuildLO2", "GHYimpact"]
     usernames = ["GuildLO1", "GuildLO2", "GHYimpact"]
-    st.write(users)
+    # st.write(users)
     # loading passwords which are hashed
     file_path = Path(__file__).parent / "hashed_passwords.pkl"
-    st.write(file_path)
+    # st.write(file_path)
     with file_path.open("rb") as file:
         hashed_passwords = pickle.load(file)
-    st.write(hashed_passwords)
+    #st.write(hashed_passwords)
     # Create an Auth object
     #  Authenticate( names,username,hashed_password,json_gen_token_cookie,random_key_to_hash_cokkie_signature,number_of_days_cokkie_can_be_used_for)
     # authenticator = stauth.Authenticate(users, usernames, hashed_passwords, "demo_auth", "rkey1", cookie_expiry_days=10)
@@ -27,13 +27,13 @@ def authenticate():
     for uname, name, pwd in zip(usernames, users, hashed_passwords):
         user_dict = {"name": name, "password": pwd}
         credentials["usernames"].update({uname: user_dict})
-    print(credentials)
+
     authenticator = stauth.Authenticate(credentials, "cokkie_name", "random_key", cookie_expiry_days=0.000001)
     # can be main or sidebar
     name, authentication_status, username = authenticator.login("Login", "sidebar")
-    st.write("name", name)
-    st.write("authentication_status", authentication_status)
-    st.write("user", username)
+    # st.write("name", name)
+    # st.write("authentication_status", authentication_status)
+    # st.write("user", username)
 
     if authentication_status == False:
         st.error("Username/password is incorrect")
