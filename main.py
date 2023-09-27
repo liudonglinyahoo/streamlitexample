@@ -1,29 +1,71 @@
 import streamlit as st
 import requests
+import streamlit_authenticator as stauth  # pip install streamlit-authenticator
+import pickle
 import pandas as pd
 from datetime import datetime
-
+from pathlib import Path
 # Define constants
 DEBUG = False
 username = "55Y1IHCUYC2L8DXJODDZ"
+def authenticate():
+    users = ["GuildLO1", "GuildLO2", "GHYimpact"]
+    usernames = ["GuildLO1", "GuildLO2", "GHYimpact"]
+    st.write(users)
+    # loading passwords which are hashed
+    file_path = Path(__file__).parent / "hashed_passwords.pkl"
+    st.write(file_path)
+    with file_path.open("rb") as file:
+        hashed_passwords = pickle.load(file)
+    st.write(hashed_passwords)
+    # Create an Auth object
+    #  Authenticate( names,username,hashed_password,json_gen_token_cookie,random_key_to_hash_cokkie_signature,number_of_days_cokkie_can_be_used_for)
+    # authenticator = stauth.Authenticate(users, usernames, hashed_passwords, "demo_auth", "rkey1", cookie_expiry_days=10)
+
+    credentials = {"usernames": {}}
+
+    for uname, name, pwd in zip(usernames, users, hashed_passwords):
+        user_dict = {"name": name, "password": pwd}
+        credentials["usernames"].update({uname: user_dict})
+    print(credentials)
+    authenticator = stauth.Authenticate(credentials, "cokkie_name", "random_key", cookie_expiry_days=0.000001)
+    # can be main or sidebar
+    name, authentication_status, username = authenticator.login("Login", "sidebar")
+    st.write("name", name)
+    st.write("authentication_status", authentication_status)
+    st.write("user", username)
+
+    if authentication_status == False:
+        st.error("Username/password is incorrect")
+
+    if authentication_status == None:
+        st.warning("Please enter your username and password")
+
+    if authentication_status:
+        return True
+    else:
+        return False
+
 def main():
 
     # get date and time to hour and minute now
     timenow = datetime.now()
     st.write('lastupdate', timenow)
     # Add a choice prompt to select the app
-    app_choice = st.sidebar.radio("Select:", ("home_price_calculator_land_lease","land lease benefit-payment","Property and Land Value App","Denver land share by zip code"))
+    if authenticate():
 
-    if app_choice == "Property and Land Value App":
-        property_land_value_app()
-    elif app_choice == "Replicate_Guild_Home_Affordability":
-        combined_home_affordability_app("Replicate_Guild_Home_Affordability", False)
-    elif app_choice == "home_price_calculator_land_lease":
-        combined_home_affordability_app("home_price_calculator_land_lease", True)
-    elif app_choice == "land lease benefit-payment":
-        home_affordability_payment_app()
-    elif app_choice == "Denver land share by zip code":
-        property_zip_code()
+        app_choice = st.sidebar.radio("Select:", ("home_price_calculator_land_lease","land lease benefit-payment","Property and Land Value App","Denver land share by zip code"))
+
+        if app_choice == "Property and Land Value App":
+            property_land_value_app()
+        elif app_choice == "Replicate_Guild_Home_Affordability":
+            combined_home_affordability_app("Replicate_Guild_Home_Affordability", False)
+        elif app_choice == "home_price_calculator_land_lease":
+            combined_home_affordability_app("home_price_calculator_land_lease", True)
+        elif app_choice == "land lease benefit-payment":
+            home_affordability_payment_app()
+        elif app_choice == "Denver land share by zip code":
+            property_zip_code()
 
 
 def property_land_value_app():
