@@ -13,6 +13,9 @@ def authenticate():
     usernames = ["GuildLO1", "GuildLO2", "GHYimpact"]
     # st.write(users)
     # loading passwords which are hashed
+    # if 'authentication_status' not in st.session_state:
+    #     st.session_state['authentication_status'] = False  # or whatever initial value you want
+
     file_path = Path(__file__).parent / "hashed_passwords.pkl"
     # st.write(file_path)
     with file_path.open("rb") as file:
@@ -28,7 +31,7 @@ def authenticate():
         user_dict = {"name": name, "password": pwd}
         credentials["usernames"].update({uname: user_dict})
 
-    authenticator = stauth.Authenticate(credentials, "cokkie_name", "random_key", cookie_expiry_days=0.000001)
+    authenticator = stauth.Authenticate(credentials, "cokkie_name", "random_key", cookie_expiry_days=0.1)
     # can be main or sidebar
     name, authentication_status, username = authenticator.login("Login", "sidebar")
     # st.write("name", name)
@@ -47,27 +50,26 @@ def authenticate():
         return False
 
 def main():
-
-    # get date and time to hour and minute now
-    timenow = datetime.now()
-    st.write('lastupdate', timenow)
+    st.set_page_config(layout="wide")
     # Add a choice prompt to select the app
+
     if authenticate():
 
-        app_choice = st.sidebar.radio("Select:", ("home_price_calculator_land_lease","land lease benefit-payment","Property and Land Value App","Denver land share by zip code"))
+        app_choice = st.sidebar.radio("Select:", ("Tillt Affordability Calculator","Tillt Monthly Payment Calculator","Property and Land Value App","Denver land share by zip code"))
 
         if app_choice == "Property and Land Value App":
             property_land_value_app()
         elif app_choice == "Replicate_Guild_Home_Affordability":
             combined_home_affordability_app("Replicate_Guild_Home_Affordability", False)
-        elif app_choice == "home_price_calculator_land_lease":
-            combined_home_affordability_app("home_price_calculator_land_lease", True)
-        elif app_choice == "land lease benefit-payment":
+        elif app_choice == "Tillt Affordability Calculator":
+            combined_home_affordability_app("Tillt Affordability Calculator", True)
+        elif app_choice == "Tillt Monthly Payment Calculator":
             home_affordability_payment_app()
         elif app_choice == "Denver land share by zip code":
             property_zip_code()
 
-
+    timenow = datetime.now()
+    st.write('lastupdate', timenow)
 def property_land_value_app():
     st.title("Property and Land Values-App")
     # Prompt user to enter the password
@@ -110,14 +112,7 @@ def property_land_value_app():
 
     else:
         st.write(".")
-def property_zip_code():
-    st.title("Property land share by zip code")
-    # Prompt user to enter the password
-    #password = st.text_input("Enter your email as password", type="password")
-
-    # address_line_1 = st.text_input("Enter Address Line 1 like 517 N Chugach St:")
-    zip_code = st.number_input("Any Denver Zip code", min_value=80000, step=1, value=80001)
-    st.write('You entered:', zip_code)
+def load_zipcode_data(zipcode):
 
     data = {
         "zipcode": [
@@ -171,25 +166,43 @@ def property_zip_code():
     }
 
     data_dict = dict(zip(data["zipcode"], data["land_share"]))
-
-    input_zipcode = int(zip_code) # Replace this with your desired zipcode
-
     # Find the corresponding landshare using the dictionary
     #st.write(data_dict.get(input_zipcode))
-    corresponding_landshare = data_dict.get(input_zipcode)
-    print(corresponding_landshare)
-    if corresponding_landshare is not None:
+    corresponding_landshare = data_dict.get(zipcode)
 
+    if corresponding_landshare is None:
+          st.write("Please enter a valid zipcode")
+    else:
+        corresponding_landshare = float(corresponding_landshare)
+        corresponding_landshare = round(corresponding_landshare, 2)
         if corresponding_landshare >0.35:
             corresponding_landshare = 0.35
-            st.write(f"Zip Code: {input_zipcode}, Our program will cover Land Share: {corresponding_landshare}")
+    return corresponding_landshare
+def property_zip_code():
+    st.title("Property land share by zip code")
+    # Prompt user to enter the password
+    #password = st.text_input("Enter your email as password", type="password")
+
+    # address_line_1 = st.text_input("Enter Address Line 1 like 517 N Chugach St:")
+    zip_code = st.number_input("Any Denver Zip code", min_value=80000, step=1, value=80001)
+    st.write('You entered:', zip_code)
+
+    corresponding_landshare = load_zipcode_data(int(zip_code))
+
+    print(corresponding_landshare)
+    if corresponding_landshare is not None:
+        corresponding_landshare = float(corresponding_landshare)
+        corresponding_landshare = round(corresponding_landshare, 2)
+        if corresponding_landshare >0.35:
+            corresponding_landshare = 0.35
+            st.write(f"Zip Code: {zip_code}, Our program will cover : {int(corresponding_landshare*100)} percent of the property value. Exmaple if the property value is 500,000, our program will cover ${int(corresponding_landshare*500000)}.")
         elif corresponding_landshare<0.15:
-            st.write(f"Zip Code: {input_zipcode}, the land share is {corresponding_landshare}, which is too low for our program to make a meaningful impact.")
+            st.write(f"Zip Code: {zip_code}, the land share is {corresponding_landshare}, which is too low for our program to make a meaningful impact.")
         else:
-            st.write(f"Zip Code: {input_zipcode}, Our program will cover Land Share: {corresponding_landshare}")
+            st.write(f"Zip Code: {zip_code}, Our program will cover Land Share: {corresponding_landshare}")
 
     else:
-        st.write(f"Zip Code: {input_zipcode}, we don't have data for this zipcode. Please try another one.")
+        st.write(f"Zip Code: {zip_code}, we don't have data for this zipcode. Please try another one.")
 
 
 def get_property_data(endpoint, address, zip_code, password):
@@ -280,6 +293,19 @@ def combined_home_affordability_app(title, land_lease_flag):
     #          "7. then compare the monthly payment with DTI and monthly income to see if it is affordable"
     #             "8. if not, decrease the loan amount and repeat the process until it is affordable")
     if(land_lease_flag):
+        if(title=="Tillt Affordability Calculator"):
+            zipcode = st.sidebar.number_input("Zipcode", min_value=0, step=1, value=80002)
+
+            if(load_zipcode_data(zipcode) is not None):
+                    land_share =load_zipcode_data(int(zipcode))
+                    st.sidebar.write("Tillt program can support up to percent of property", int(land_share*100))
+                    st.sidebar.write("Land Lease Rate (%)", 4.75)
+                    land_lease_rate =4.75/100
+            else:
+                st.write("Sorry, the property in this zipcode is not supported yet. Please try another zipcode")
+
+                return
+        else:
             land_share = st.sidebar.number_input("Land Share", min_value=0, step=1, value=25)/100
             land_lease_rate = st.sidebar.number_input("Land Lease Rate (%)", min_value=0.0, step=0.05, value=4.75)/100
 
@@ -334,13 +360,13 @@ def combined_home_affordability_app(title, land_lease_flag):
         # st.write("loan", max_loan)
 
         st.markdown(
-            f"<h3>Based on your inputs, with land lease the maximum home price you can afford is ${int(max_home_price_with_piti):,}</h3>",
+            f"<h3>Considering your inputs, your maximum affordable home price with Terrapin Impact Partner's Tittle land lease program is ${int(max_home_price_with_piti):,}</h3>",
             unsafe_allow_html=True)
         st.markdown(
-            f"<h3>Without land lease the maximum home price you can afford is ${int(max_home_price_without_land_lease):,}</h3>",
+            f"<h3>In the absence of a land lease, using traditional 30 year fixed rate mortgage, your maximum affordable home price is ${int(max_home_price_without_land_lease):,}</h3>",
             unsafe_allow_html=True)
         st.markdown(
-            f"<h3>With GHY land lease program, your purchasing power improved by {round(float(affordability), 2):,} %</h3>",
+            f"<h3>With the Terrapin Impact Partner's Tittle land lease program, your purchasing power has increased by {round(float(affordability), 2):,} %</h3>",
             unsafe_allow_html=True)
     if land_lease_flag:
         total_monthly_pay = max_loan_without_land_lease * PMI_rate_per_100k + max_home_price_without_land_lease * home_insurance_rate_monthly + max_home_price_without_land_lease * property_tax_rate_month+ compute_monthly_mortgage(max_loan_without_land_lease, interest_rate / 1200, loan_term * 12)
@@ -375,24 +401,22 @@ def combined_home_affordability_app(title, land_lease_flag):
         st.write("something wrong with your input, please check again")
 
     st.write("Show Lease Payment Schedule for first 10 years")
+    cpi = st.number_input("CPI assumption for current year", min_value=0.00, step=0.01, value=0.02)
          #calculate monthly payment increase every 6 months and land price increase every 6 months
-    leasepay_schedule = generate_leasepay_schedule(land_share*max_home_price_with_piti, land_lease_rate, 0.012, 10)
+    leasepay_schedule = generate_leasepay_schedule(land_share*max_home_price_with_piti, land_lease_rate, cpi/2, 10)
     df = pd.DataFrame(leasepay_schedule)
     #format df's first two columns to integer
 
     for col in df.columns[:4]:
          df[col] = df[col].astype(int)
-    # df['month'] = df['month'].astype(int)
-    # df['Land Value'] = df['Land Value'].astype(int)
-    # df['monthly_Lease Payment'] = df['monthly_Lease Payment'].astype(int)
-    # df['increase dollar'] = df['increase dollar'].astype(int)
 
     st.write(df.to_html(index=False), unsafe_allow_html=True)
+    st.write("***Disclaimer: This calculator is offered for illustrative and educational purposes only and it is not intended to replace a professional estimate. Calculator results do not reflect all loan types and are subject to individual program loan limits. All calculations and costs are estimates and therefore, Terrapin Impact Partner does not make any guarantee or warranty (express or implied) that all possible costs have been included. The assumptions made here and the output of the calculator do not constitute a loan offer or solicitation, or financial or legal advice. Please connect with a loan professional for a formal estimate. Every effort is made to maintain accurate calculations; however, Terrapin assumes no liability to any third parties that rely on this information and is not responsible for the accuracy of rates, APRs or any other loan information factored in the calculations.")
 
 
 def generate_leasepay_schedule(land_value, lease_rate, CPI_halfyear, years):
     leasepay_schedule = pd.DataFrame(columns=[
-        'month', 'Land Value/Right to purchase',  'monthly_Lease Payment', 'Payment adjustment $ as Land Value appreciates(CPI)', 'increase percent'])
+        'Month', 'Right to Purchase Land $ ',  'Monthly Lease Payment', 'Payment Adjustment $)', 'Adjustment Percent'])
 
     for p in range(0, years*2):
         month =p*6
@@ -401,17 +425,17 @@ def generate_leasepay_schedule(land_value, lease_rate, CPI_halfyear, years):
             last_month_lease_payment = land_value * lease_rate / 12
             new_land_value=land_value
         else:
-            last_month_lease_payment = leasepay_schedule.loc[month-6, 'monthly_Lease Payment']
+            last_month_lease_payment = leasepay_schedule.loc[month-6, 'Monthly Lease Payment']
             new_land_value = land_value * (1 + CPI_halfyear) ** p
         monthly_lease_payment = new_land_value * lease_rate / 12
         increase_dollar = monthly_lease_payment - last_month_lease_payment
-        increase_percent = increase_dollar / last_month_lease_payment
+        increase_percent = CPI_halfyear * 100
         #st.write(month, new_land_value, monthly_lease_payment, last_month_lease_payment,increase_dollar, increase_percent)
         leasepay_schedule.loc[month] = [month, new_land_value, monthly_lease_payment, increase_dollar, increase_percent]
 
     return leasepay_schedule
 def home_affordability_payment_app():
-    st.title("Monthly payment Calculator")
+    st.title("Monthly Payment Calculator")
     # start from home price as input, use down payment percent to calculate loan amount
     # use loan amount to calculate monthly payment
     # use monthly payment and income to calculate DTIs
@@ -486,5 +510,22 @@ def home_affordability_payment_app():
         ]
     df = pd.DataFrame(data)
     st.write(df.to_html(index=False), unsafe_allow_html=True)
+
+    if st.button("Show Lease Payment Schedule"):
+
+        leasepay_schedule= generate_leasepay_schedule(home_price*land_share,land_lease_rate,0.01, 10)
+        df = pd.DataFrame(leasepay_schedule)
+        # format df's first two columns to integer
+
+        for col in df.columns[:4]:
+            df[col] = df[col].astype(int)
+
+        st.write(df.to_html(index=False), unsafe_allow_html=True)
+    else:
+        st.write("Please click the button to show lease payment schedule")
+    st.write(
+        "***Disclaimer: This calculator is offered for illustrative and educational purposes only and it is not intended to replace a professional estimate. Calculator results do not reflect all loan types and are subject to individual program loan limits. All calculations and costs are estimates and therefore, Terrapin Impact Partner does not make any guarantee or warranty (express or implied) that all possible costs have been included. The assumptions made here and the output of the calculator do not constitute a loan offer or solicitation, or financial or legal advice. Please connect with a loan professional for a formal estimate. Every effort is made to maintain accurate calculations; however, Terrapin assumes no liability to any third parties that rely on this information and is not responsible for the accuracy of rates, APRs or any other loan information factored in the calculations.")
+
+
 if __name__ == "__main__":
     main()
