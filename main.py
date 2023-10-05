@@ -291,7 +291,7 @@ def combined_home_affordability_app(title, land_lease_flag):
     #          "5. then calculate the lease amount based on land share and land lease rate"
     #         "6. then calculate monthly payment using mortgage payment, property tax, home insurance and lease amount"
     #          "7. then compare the monthly payment with DTI and monthly income to see if it is affordable"
-    #             "8. if not, decrease the loan amount and repeat the process until it is affordable")
+    #          "8. if not, decrease the loan amount and repeat the process until it is affordable")
     if(land_lease_flag):
         if(title=="Tillt Affordability Calculator"):
             zipcode = st.sidebar.number_input("Zipcode", min_value=0, step=1, value=80002)
@@ -372,29 +372,31 @@ def combined_home_affordability_app(title, land_lease_flag):
         total_monthly_pay = max_loan_without_land_lease * PMI_rate_per_100k + max_home_price_without_land_lease * home_insurance_rate_monthly + max_home_price_without_land_lease * property_tax_rate_month+ compute_monthly_mortgage(max_loan_without_land_lease, interest_rate / 1200, loan_term * 12)
         total_monthly_pay_with_lease = max_loan * PMI_rate_per_100k + max_home_price_with_piti * home_insurance_rate_monthly + max_home_price_with_piti * property_tax_rate_month + max_home_price_with_piti * land_share * land_lease_rate / 12 + compute_monthly_mortgage(max_loan, interest_rate / 1200, loan_term * 12)
         st.write("DTI Front and DTI Back", round(total_monthly_pay_with_lease/(annual_income/12),6), round((total_monthly_pay_with_lease+monthly_debt)/(annual_income/12),6))
-        data = [{
-            "Condition": "Without Land Lease",
-            "Loan Amount": int(max_loan_without_land_lease),
-            "Home Price": int(max_home_price_without_land_lease),
-            "Total monthly payment": int(total_monthly_pay),
-            "PMI Monthly": int(max_loan_without_land_lease * PMI_rate_per_100k),
-            "Home Insurance": int(max_home_price_without_land_lease * home_insurance_rate_monthly),
-            "Property Tax Monthly": int(max_home_price_without_land_lease * property_tax_rate_month),
-            "Mortgage P&I": int( compute_monthly_mortgage(max_loan_without_land_lease, interest_rate / 1200, loan_term * 12)),
-            "Land Lease Monthly": 0},
-            {"Condition": "With Land Lease",
-            "Loan Amount": int(max_loan),
-            "Home Price": int(max_home_price_with_piti),
-            "Total monthly payment":int(total_monthly_pay_with_lease),
-            "PMI Monthly": int(max_loan * PMI_rate_per_100k),
-            "Home Insurance": int(max_home_price_with_piti * home_insurance_rate_monthly),
-            "Property Tax Monthly": int(max_home_price_with_piti * property_tax_rate_month),
-            "Mortgage P&I": int( compute_monthly_mortgage(max_loan, interest_rate / 1200, loan_term * 12)),
-            "Land Lease Monthly":  int(max_home_price_with_piti * land_share * land_lease_rate / 12)}
-        ]
-        df = pd.DataFrame(data)
 
-        st.write(df.to_html(index=False), unsafe_allow_html=True)
+        data1 = {
+            "": ["Home Price Affordable","Loan Amount",  "Total Monthly Payment", "PMI", "Home Insurance",
+                          "Property Tax", "Principal&Interest", "Land Lease "],
+            "Without Land Lease": [int(max_home_price_without_land_lease),
+                                   int(max_loan_without_land_lease),
+                                   int(total_monthly_pay),
+                                   int(max_loan_without_land_lease * PMI_rate_per_100k),
+                                   int(max_home_price_without_land_lease*home_insurance_rate_monthly),
+                                   int(max_home_price_without_land_lease*property_tax_rate_month),
+                                   int( compute_monthly_mortgage(max_loan_without_land_lease, interest_rate / 1200, loan_term * 12)),
+                                   0],
+            "With Land Lease": [int(max_home_price_with_piti),
+                                int(max_loan),
+                                int(total_monthly_pay_with_lease),
+                                int(max_loan * PMI_rate_per_100k),
+                                int(max_home_price_with_piti * home_insurance_rate_monthly),
+                                int(max_home_price_with_piti * property_tax_rate_month),
+                                int(compute_monthly_mortgage(max_loan, interest_rate / 1200, loan_term * 12)),
+                                int(max_home_price_with_piti * land_share * land_lease_rate / 12)
+                                ]
+        }
+        df1 = pd.DataFrame(data1)
+
+        st.write(df1.to_html(index=False), unsafe_allow_html=True)
 
 
     else:
@@ -407,8 +409,11 @@ def combined_home_affordability_app(title, land_lease_flag):
     df = pd.DataFrame(leasepay_schedule)
     #format df's first two columns to integer
 
-    for col in df.columns[:4]:
+    for col in df.columns[0:2]:
          df[col] = df[col].astype(int)
+
+    for col in df.columns[3:5]:
+        df[col] = df[col].astype(int)
 
     st.write(df.to_html(index=False), unsafe_allow_html=True)
     st.write("***Disclaimer: This calculator is offered for illustrative and educational purposes only and it is not intended to replace a professional estimate. Calculator results do not reflect all loan types and are subject to individual program loan limits. All calculations and costs are estimates and therefore, Terrapin Impact Partner does not make any guarantee or warranty (express or implied) that all possible costs have been included. The assumptions made here and the output of the calculator do not constitute a loan offer or solicitation, or financial or legal advice. Please connect with a loan professional for a formal estimate. Every effort is made to maintain accurate calculations; however, Terrapin assumes no liability to any third parties that rely on this information and is not responsible for the accuracy of rates, APRs or any other loan information factored in the calculations.")
@@ -416,7 +421,7 @@ def combined_home_affordability_app(title, land_lease_flag):
 
 def generate_leasepay_schedule(land_value, lease_rate, CPI_halfyear, years):
     leasepay_schedule = pd.DataFrame(columns=[
-        'Month', 'Right to Purchase Land $ ',  'Monthly Lease Payment', 'Payment Adjustment $)', 'Adjustment Percent'])
+        'Month', 'Right to Purchase Land $ ', 'Lease Rate (%)', 'Monthly Lease Payment $', 'Payment Adjustment $', 'Adjustment %'])
 
     for p in range(0, years*2):
         month =p*6
@@ -425,13 +430,13 @@ def generate_leasepay_schedule(land_value, lease_rate, CPI_halfyear, years):
             last_month_lease_payment = land_value * lease_rate / 12
             new_land_value=land_value
         else:
-            last_month_lease_payment = leasepay_schedule.loc[month-6, 'Monthly Lease Payment']
+            last_month_lease_payment = leasepay_schedule.loc[month-6, 'Monthly Lease Payment $']
             new_land_value = land_value * (1 + CPI_halfyear) ** p
         monthly_lease_payment = new_land_value * lease_rate / 12
         increase_dollar = monthly_lease_payment - last_month_lease_payment
         increase_percent = CPI_halfyear * 100
         #st.write(month, new_land_value, monthly_lease_payment, last_month_lease_payment,increase_dollar, increase_percent)
-        leasepay_schedule.loc[month] = [month, new_land_value, monthly_lease_payment, increase_dollar, increase_percent]
+        leasepay_schedule.loc[month] = [month, new_land_value, lease_rate*100, monthly_lease_payment, increase_dollar, increase_percent]
 
     return leasepay_schedule
 def home_affordability_payment_app():
@@ -486,28 +491,14 @@ def home_affordability_payment_app():
 
     #st.write("Initial monthly_pay_saving and percentage( %)", monthly_pay_saving, monthly_pay_saving_p )
     #st.write("DTI Front and DTI Back", round(tota/(annual_income/12),6), round((total_monthly_pay_with_lease+monthly_debt)/(annual_income/12),6))
-    data = [{
-            "Condition": "Without Land Lease",
-            "Home Price": int(home_price),
-            "Loan Amount": int(max_loan_without_land_lease),
-            "down payment": int(home_price * down_payment_percent),
-            "Total monthly payment": int(total_monthly_pay),
-            "PMI Monthly": int(mortgage_insurance_monthly),
-            "Home Insurance": int(home_insurance_monthly),
-            "Property Tax Monthly": int(property_tax_monthly),
-            "Mortgage P&I": int( monthly_mortgageP_I),
-            "Land Lease Monthly": 0},
-            {"Condition": "With Land Lease",
-            "Home Price": int(home_price),
-            "Loan Amount": int(max_loan_with_land_lease),
-            "down payment": int(max_loan_with_land_lease * down_payment_percent),
-            "Total monthly payment":int(total_monthly_pay_l),
-            "PMI Monthly": int(mortgage_insurance_monthly_l),
-            "Home Insurance": int(home_insurance_monthly_l),
-            "Property Tax Monthly": int(property_tax_monthly_l),
-            "Mortgage P&I": int( monthly_mortgageP_I_l),
-            "Land Lease Monthly":  int(monthly_lease)}
-        ]
+    data = {"":["Home Price", "Loan Amount", "down payment", "Total monthly payment", "PMI Monthly", "Home Insurance", "Property Tax Monthly", "Mortgage P&I", "Land Lease Monthly"],
+            "Without Land Lease":[int(home_price),int(max_loan_without_land_lease),int(home_price * down_payment_percent),
+                                  int(total_monthly_pay),int(mortgage_insurance_monthly),int(home_insurance_monthly),int(property_tax_monthly),int(monthly_mortgageP_I),0],
+             "With Land Lease":[int(home_price),int(max_loan_with_land_lease),int(home_price * down_payment_percent),
+                                    int(total_monthly_pay_l),int(mortgage_insurance_monthly_l),int(home_insurance_monthly_l),int(property_tax_monthly_l),int(monthly_mortgageP_I_l),int(monthly_lease)
+                                ]
+            }
+
     df = pd.DataFrame(data)
     st.write(df.to_html(index=False), unsafe_allow_html=True)
 
