@@ -79,7 +79,7 @@ def main():
     timenow = datetime.now()
     st.write('lastupdate', timenow)
 def property_land_value_app():
-    st.title("Property and Land Values Checke")
+    st.title("Property and Land Values Checker")
     # Prompt user to enter the password
     password = st.text_input("Enter your password:(email ghyproductteam@ghyimpact.com for password)", type="password")
 
