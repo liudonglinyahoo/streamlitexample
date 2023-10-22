@@ -42,8 +42,16 @@ def authenticate():
         st.error("Username/password is incorrect")
 
     if authentication_status == None:
+
         st.warning("Please enter your username and password")
 
+        header_text = "The Tillt Program"
+        header_text1 = "A Sustainable Home Buying Solution that Combines Affordability with Community"
+
+
+        st.markdown(f"## {header_text}")
+        st.markdown(f"### {header_text1}")
+        st.image('2.jpg', caption='', width=300)
     if authentication_status:
         return True
     else:
@@ -71,7 +79,7 @@ def main():
     timenow = datetime.now()
     st.write('lastupdate', timenow)
 def property_land_value_app():
-    st.title("Property and Land Values-App")
+    st.title("Property and Land Values Checke")
     # Prompt user to enter the password
     password = st.text_input("Enter your password:(email ghyproductteam@ghyimpact.com for password)", type="password")
 
@@ -92,7 +100,7 @@ def property_land_value_app():
             data = {
                 'address': address,
                 'zip_code': zip_code,
-                'land share_calc': round(land_val[0]['property/land_value']['result']['land_value']['value_mean']/prop_val[0]['property/value']['result']['value']['price_mean'],3),
+                'land share': round(land_val[0]['property/land_value']['result']['land_value']['value_mean']/prop_val[0]['property/value']['result']['value']['price_mean'],3),
                 'land_value_mean': land_val[0]['property/land_value']['result']['land_value']['value_mean'],
                 'land_value_upr': land_val[0]['property/land_value']['result']['land_value']['value_upr'],
                 'land_value_lwr': land_val[0]['property/land_value']['result']['land_value']['value_lwr'],
@@ -101,14 +109,26 @@ def property_land_value_app():
                 'property_value_lwr': prop_val[0]['property/value']['result']['value']['price_lwr'],
             }
             df = pd.DataFrame([data])
-            st.table(df)
+            df_T = df.T
+            st.table(df_T)
             link = "https://www.google.com/search?q="
             link += address.replace(" ", "+") + "+" + zip_code
             link += "+zillow"
             st.markdown(link, unsafe_allow_html=True)
         else:
             st.write("Error retrieving data. Please try again.")
-
+        flood_risk_val = get_property_data('flood', address, zip_code, password)
+        if flood_risk_val and flood_risk_val[0]['property/flood']['api_code']==0:
+            data = {
+                'address': address,
+                'zip_code': zip_code,
+                'flood_risk_date': flood_risk_val[0]['property/flood']['result']['effective_date'],
+                'flood_risk_zone': flood_risk_val[0]['property/flood']['result']['zone'],
+                'flood_risk': flood_risk_val[0]['property/flood']['result']['flood_risk']
+            }
+            df = pd.DataFrame([data])
+            df_T = df.T
+            st.table(df_T)
 
     else:
         st.write(".")
@@ -358,16 +378,42 @@ def combined_home_affordability_app(title, land_lease_flag):
         # st.write("monthly_lease =", max_home_price_with_piti * land_share * land_lease_rate / 12)
         # st.write("monthly_mortgageP&I", compute_monthly_mortgage(max_loan, interest_rate / 1200, loan_term * 12))
         # st.write("loan", max_loan)
+        # st.write("affordability", affordability)
+        st.title("")
 
+        # variable_output = st.text_input("Enter some text", value="Streamlit is awesome")
+        # number = int(max_home_price_with_piti)
+        # numbers = str()
+        # variable_output = "$" +str({int(max_home_price_with_piti):,})
+        # font_size = st.slider("Enter a font size", 1, 300, value=30)
+        #
+        # html_str = f"""
+        # <style>
+        # p.a {{
+        #   font: bold {font_size}px Courier;
+        # }}
+        # </style>
+        # <p class="a">{variable_output}</p>
+        # """
+
+        # st.markdown(html_str, unsafe_allow_html=True)
         st.markdown(
-            f"<h3>Considering your inputs, your maximum affordable home price with Terrapin Impact Partner's Tittle land lease program is ${int(max_home_price_with_piti):,}</h3>",
+            f"<h3>Based on your inputs, your maximum affordable home price with the Tillt land lease program is ${int(max_home_price_with_piti):,} </h3>",
+            unsafe_allow_html=True)
+        # stringdisplaynumber = f"{int(max_home_price_with_piti):,}"
+        # new_title = '<p style="font-family:sans-serif; color:Green; font-size: 42px;"> {stringdisplaynumber} </p>'
+        # st.markdown(new_title, unsafe_allow_html=True)
+        # st.markdown(
+        #     "Based on your inputs, your maximum affordable home price with the Tillt land lease program is ${int(max_home_price_with_piti):,} ")
+        # st.markdown(
+        #     "Text can be :blue[blue], but also :orange[orange]. And of course it can be :red[red]. And :green[green]. And look at this :violet[violet]!"
+        # )
+        st.markdown(
+            f"<h3>In the absence of a land lease, using only a traditional 30-year fixed rate mortgage, your maximum available home price is ${int(max_home_price_without_land_lease):,}</h3>",
             unsafe_allow_html=True)
         st.markdown(
-            f"<h3>In the absence of a land lease, using traditional 30 year fixed rate mortgage, your maximum affordable home price is ${int(max_home_price_without_land_lease):,}</h3>",
-            unsafe_allow_html=True)
-        st.markdown(
-            f"<h3>With the Terrapin Impact Partner's Tittle land lease program, your purchasing power has increased by {round(float(affordability), 2):,} %</h3>",
-            unsafe_allow_html=True)
+            f"<h3>With the Tillt land lease program, your purchasing power has increased by {round(float(affordability), 2):,}%</h3>",
+            unsafe_allow_html=True) 
     if land_lease_flag:
         total_monthly_pay = max_loan_without_land_lease * PMI_rate_per_100k + max_home_price_without_land_lease * home_insurance_rate_monthly + max_home_price_without_land_lease * property_tax_rate_month+ compute_monthly_mortgage(max_loan_without_land_lease, interest_rate / 1200, loan_term * 12)
         total_monthly_pay_with_lease = max_loan * PMI_rate_per_100k + max_home_price_with_piti * home_insurance_rate_monthly + max_home_price_with_piti * property_tax_rate_month + max_home_price_with_piti * land_share * land_lease_rate / 12 + compute_monthly_mortgage(max_loan, interest_rate / 1200, loan_term * 12)
