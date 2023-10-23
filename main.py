@@ -48,10 +48,10 @@ def authenticate():
         header_text = "The Tillt Program"
         header_text1 = "A Sustainable Home Buying Solution that Combines Affordability with Community"
 
-
-        st.markdown(f"## {header_text}")
-        st.markdown(f"### {header_text1}")
-        st.image('2.jpg', caption='', width=300)
+        #
+        # st.markdown(f"## {header_text}")
+        # st.markdown(f"### {header_text1}")
+        # st.image('2.jpg', caption='', width=300)
     if authentication_status:
         return True
     else:
