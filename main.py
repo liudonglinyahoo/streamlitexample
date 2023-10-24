@@ -315,10 +315,9 @@ def combined_home_affordability_app(title, land_lease_flag):
     if(land_lease_flag):
         if(title=="Tillt Affordability Calculator"):
             zipcode = st.sidebar.number_input("Zipcode", min_value=0, step=1, value=80002)
-
             if(load_zipcode_data(zipcode) is not None):
                     land_share =load_zipcode_data(int(zipcode))
-                    st.sidebar.write("Tillt program can support up to percent of property", int(land_share*100))
+                    st.sidebar.write("In this zip code", int(zipcode),"Tillt program can support land value up to", int(land_share*100), "percent of property value")
                     st.sidebar.write("Land Lease Rate (%)", 4.75)
                     land_lease_rate =4.75/100
             else:
@@ -328,21 +327,56 @@ def combined_home_affordability_app(title, land_lease_flag):
         else:
             land_share = st.sidebar.number_input("Land Share", min_value=0, step=1, value=25)/100
             land_lease_rate = st.sidebar.number_input("Land Lease Rate (%)", min_value=0.0, step=0.05, value=4.75)/100
+    st.sidebar.write("Please enter/update home buyer's information")
+    with st.sidebar:
+        col1, col2 = st.columns(2)
 
-    annual_income = st.sidebar.number_input("Annual Income", min_value=0, step=500, value=120000)
-    monthly_debt = st.sidebar.number_input("Monthly Debt", min_value=0, step=50, value=1200)
+        with col1:
+
+            annual_income = col1.number_input("Annual Income1", min_value=0, step=500, value=120000)
+        with col2:
+            monthly_debt = col2.number_input("Monthly Debt1", min_value=0, step=50, value=1200)
+    with st.sidebar:
+        with col1:
+            interest_rate = col1.number_input("Interest Rate (%)", min_value=0.0, step=0.1, value=7.5)
+
+        with col2:
+            loan_term =col2.number_input("Loan Term (Years)", min_value=1, max_value=50, step=1, value=30)
+
+
+    with st.sidebar:
+        with col1:
+            DTI_front = col1.number_input("Max Front-end DTI (%)", min_value=0.0, step=0.1, value=33.0)
+        with col2:
+            DTI_back = col2.number_input("Max Back-end DTI (%)", min_value=0.0, step=0.1, value=45.0)
+    #annual_income = st.sidebar.number_input("Annual Income", min_value=0, step=500, value=120000)
+    #monthly_debt = st.sidebar.number_input("Monthly Debt", min_value=0, step=50, value=1200)
     # st.sidebar.write("Monthly Income:", annual_income / 12.0)
-    down_payment_percent = st.sidebar.number_input("Down Payment (%)", min_value=0.0, step=0.1, value=5.0) / 100
+    with st.sidebar:
+        with col1:
+            down_payment_percent = col1.number_input("Down Payment (%)", min_value=0.0, step=0.1, value=5.0) / 100
+        with col2:
+            property_tax_rate = col2.number_input("property_tax_rate (%)", min_value=0.0, step=0.01,
+                                                    value=1.0) / 100
+    with st.sidebar:
+        with col1:
+            PMI_rate = col1.number_input("PMI_rate ($per 100K)", min_value=0, step=1, value=65)
+        with col2:
+            annual_home_insurance_rate = col2.number_input("annual_home_insurance rate per 1000", min_value=0.0000,
+                                                             step=0.1, value=3.5) / 1000
+
+
+    # interest_rate = st.sidebar.number_input("Interest Rate (%)", min_value=0.0, step=0.1, value=7.5)
+    # loan_term = st.sidebar.number_input("Loan Term (Years)", min_value=1, max_value=50, step=1, value=30)
+    # DTI_front = st.sidebar.number_input("Front-endDTI (%)", min_value=0.0, step=0.1, value=33.0)
+    # DTI_back = st.sidebar.number_input("Back-end DTI (%)", min_value=0.0, step=0.1, value=45.0)
+    # down_payment_percent = st.sidebar.number_input("Down Payment (%)", min_value=0.0, step=0.1, value=5.0) / 100
+    # property_tax_rate = st.sidebar.number_input("property_tax_rate (%)", min_value=0.0, step=0.01,
+    #                                                 value=1.0) / 100
+    # PMI_rate = st.sidebar.number_input("PMI_rate ($per 100K)", min_value=0, step=1, value=65)
+    # annual_home_insurance_rate = st.sidebar.number_input("annual_home_insurance rate per 1000", min_value=0.0000,
+    #                                                          step=0.1, value=3.5) / 1000
     LTV = 1 - down_payment_percent
-    interest_rate = st.sidebar.number_input("Interest Rate (%)", min_value=0.0, step=0.1, value=7.5)
-    loan_term = st.sidebar.number_input("Loan Term (Years)", min_value=1, max_value=50, step=1, value=30)
-    DTI_front = st.sidebar.number_input("Front-endDTI (%)", min_value=0.0, step=0.1, value=33.0)
-    DTI_back = st.sidebar.number_input("Back-end DTI (%)", min_value=0.0, step=0.1, value=45.0)
-    property_tax_rate = st.sidebar.number_input("property_tax_rate (%)", min_value=0.0, step=0.01,
-                                                value=1.0) / 100
-    PMI_rate = st.sidebar.number_input("PMI_rate ($per 100K)", min_value=0, step=1, value=65)
-    annual_home_insurance_rate = st.sidebar.number_input("annual_home_insurance rate per 1000", min_value=0.0000,
-                                                         step=0.1, value=3.5) / 1000
     PMI_rate_per_100k = PMI_rate / 100000
     property_tax_rate_month = property_tax_rate / 12
     home_insurance_rate_monthly = annual_home_insurance_rate / 12
@@ -398,16 +432,9 @@ def combined_home_affordability_app(title, land_lease_flag):
 
         # st.markdown(html_str, unsafe_allow_html=True)
         st.markdown(
-            f"<h3>Based on your inputs, your maximum affordable home price with the Tillt land lease program is ${int(max_home_price_with_piti):,} </h3>",
+            f"<h3>Based on your inputs (on the left side), your maximum affordable home price with the Tillt land lease program is ${int(max_home_price_with_piti):,} </h3>",
             unsafe_allow_html=True)
-        # stringdisplaynumber = f"{int(max_home_price_with_piti):,}"
-        # new_title = '<p style="font-family:sans-serif; color:Green; font-size: 42px;"> {stringdisplaynumber} </p>'
-        # st.markdown(new_title, unsafe_allow_html=True)
-        # st.markdown(
-        #     "Based on your inputs, your maximum affordable home price with the Tillt land lease program is ${int(max_home_price_with_piti):,} ")
-        # st.markdown(
-        #     "Text can be :blue[blue], but also :orange[orange]. And of course it can be :red[red]. And :green[green]. And look at this :violet[violet]!"
-        # )
+
         st.markdown(
             f"<h3>In the absence of a land lease, using only a traditional 30-year fixed rate mortgage, your maximum available home price is ${int(max_home_price_without_land_lease):,}</h3>",
             unsafe_allow_html=True)
@@ -417,11 +444,10 @@ def combined_home_affordability_app(title, land_lease_flag):
     if land_lease_flag:
         total_monthly_pay = max_loan_without_land_lease * PMI_rate_per_100k + max_home_price_without_land_lease * home_insurance_rate_monthly + max_home_price_without_land_lease * property_tax_rate_month+ compute_monthly_mortgage(max_loan_without_land_lease, interest_rate / 1200, loan_term * 12)
         total_monthly_pay_with_lease = max_loan * PMI_rate_per_100k + max_home_price_with_piti * home_insurance_rate_monthly + max_home_price_with_piti * property_tax_rate_month + max_home_price_with_piti * land_share * land_lease_rate / 12 + compute_monthly_mortgage(max_loan, interest_rate / 1200, loan_term * 12)
-        st.write("DTI Front and DTI Back", round(total_monthly_pay_with_lease/(annual_income/12),6), round((total_monthly_pay_with_lease+monthly_debt)/(annual_income/12),6))
 
         data1 = {
-            "": ["Home Price Affordable","Loan Amount",  "Total Monthly Payment", "PMI", "Home Insurance",
-                          "Property Tax", "Principal&Interest", "Land Lease "],
+            "": ["Home Price Affordable($)","Loan Amount($)",  "Total Monthly Payment($)", "Monthly Mortgage Insurance($)", "Monthly Home Insurance($)",
+                          "Monthly Property Tax($)", "Monthly Mortgage Principal&Interest($)", "Monthly Land Lease(S)"],
             "Without Land Lease": [int(max_home_price_without_land_lease),
                                    int(max_loan_without_land_lease),
                                    int(total_monthly_pay),
@@ -448,10 +474,14 @@ def combined_home_affordability_app(title, land_lease_flag):
     else:
         st.write("something wrong with your input, please check again")
 
-    st.write("Show Lease Payment Schedule for first 10 years")
-    cpi = st.number_input("CPI assumption for current year", min_value=0.00, step=0.01, value=0.02)
+    cpi = st.number_input("CPI assumption % for current year", min_value=0.0, step=0.1, value=2.0)
+    st.markdown(
+            f"<h3>Illustrative 10-year Lease Payment Schedule with CPI assumption {cpi:,} percent</h3>",
+            unsafe_allow_html=True)
+    # st.write("Lease Payment Schedule for first 10 years")
+
          #calculate monthly payment increase every 6 months and land price increase every 6 months
-    leasepay_schedule = generate_leasepay_schedule(land_share*max_home_price_with_piti, land_lease_rate, cpi/2, 10)
+    leasepay_schedule = generate_leasepay_schedule(land_share*max_home_price_with_piti, land_lease_rate, cpi/200, 10)
     df = pd.DataFrame(leasepay_schedule)
     #format df's first two columns to integer
 
@@ -462,6 +492,10 @@ def combined_home_affordability_app(title, land_lease_flag):
         df[col] = df[col].astype(int)
 
     st.write(df.to_html(index=False), unsafe_allow_html=True)
+    st.write("Calculated Front-end and Back-end DTI based on inputs",
+             round(total_monthly_pay_with_lease / (annual_income / 12), 6),
+             round((total_monthly_pay_with_lease + monthly_debt) / (annual_income / 12), 6))
+
     st.write("***Disclaimer: This calculator is offered for illustrative and educational purposes only and it is not intended to replace a professional estimate. Calculator results do not reflect all loan types and are subject to individual program loan limits. All calculations and costs are estimates and therefore, Terrapin Impact Partner does not make any guarantee or warranty (express or implied) that all possible costs have been included. The assumptions made here and the output of the calculator do not constitute a loan offer or solicitation, or financial or legal advice. Please connect with a loan professional for a formal estimate. Every effort is made to maintain accurate calculations; however, Terrapin assumes no liability to any third parties that rely on this information and is not responsible for the accuracy of rates, APRs or any other loan information factored in the calculations.")
 
 
@@ -500,8 +534,8 @@ def home_affordability_payment_app():
     loan_term = st.sidebar.number_input("Loan Term (Years)", min_value=1, max_value=50, step=1, value=30)
     property_tax_rate = st.sidebar.number_input("property_tax_rate (%)", min_value=0.0, step=0.01,
                                                 value=1.0) / 100
-    PMI_rate = st.sidebar.number_input("PMI_rate ($per 100K)", min_value=0, step=1, value=65)
-    annual_home_insurance_rate = st.sidebar.number_input("annual_home_insurance rate per 1000", min_value=0.0000,
+    PMI_rate = st.sidebar.number_input("PMI rate ($per 100K)", min_value=0, step=1, value=65)
+    annual_home_insurance_rate = st.sidebar.number_input("annual home insurance rate per 1000", min_value=0.0000,
                                                          step=0.1, value=3.5) / 1000
 
     annual_income = st.sidebar.number_input("Annual Income", min_value=0, step=500, value=120000)
