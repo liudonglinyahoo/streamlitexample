@@ -91,10 +91,97 @@ def property_land_value_app_cached():
 
     # Read the CSV file into a DataFrame
     df = pd.read_csv(url)
+    addresses = list(zip(df['streetName'], df['zipcode'].astype(str)))
 
     # Print the DataFrame
     st.dataframe(df)
-#s = st.selectbox("Select an address:", addresses)
+    selected_address = st.selectbox("Select an address:", addresses)
+    st.write("You selected:", selected_address)
+
+
+    street_name, zipcode = selected_address
+    # Filter the dataframe based on the streetName and zipcode
+    filtered_df = df[(df['streetName'] == street_name) & (df['zipcode'] == int(zipcode))]
+
+    # If the filtered dataframe is not empty, return the values
+    if not filtered_df.empty:
+        price = filtered_df['price'].iloc[0]
+        land_value_mean = filtered_df['Land Value - Value Mean'].iloc[0]
+        Land_Share_of_Property = filtered_df['Land_Share_of_Property'].iloc[0]
+        Land_finance = filtered_df['Land_finance'].iloc[0]
+        land_share =Land_finance/price
+
+        st.write("Price:", price, "Land finance:", Land_finance,"land_share:",land_share)
+    else:
+        st.write("No data found for the selected address")
+
+    home_price = price
+    down_payment_percent = 0.05
+    land_lease_rate = 0.0475
+    LTV = 1 - down_payment_percent
+
+    interest_rate = st.sidebar.number_input("Interest Rate (%)", min_value=0.0, step=0.1, value=7.5)
+    loan_term = st.sidebar.number_input("Loan Term (Years)", min_value=1, max_value=50, step=1, value=30)
+    property_tax_rate = st.sidebar.number_input("property_tax_rate (%)", min_value=0.0, step=0.01,
+                                                value=1.0) / 100
+    PMI_rate = st.sidebar.number_input("PMI rate%", min_value=0.0, step=0.01, value=0.78)
+    annual_home_insurance_rate = st.sidebar.number_input("Home insurance rate %", min_value=0.0000,
+                                                         step=0.01, value=0.35) / 100
+
+    property_tax_rate_month = property_tax_rate / 12
+    home_insurance_rate_monthly = annual_home_insurance_rate / 12
+
+    max_loan_without_land_lease= home_price * LTV
+    max_loan_with_land_lease = home_price * (1-land_share) * LTV
+
+    mortgage_insurance_monthly = max_loan_without_land_lease * PMI_rate / 1200
+    home_insurance_monthly = home_price * home_insurance_rate_monthly
+    property_tax_monthly = home_price * property_tax_rate_month
+    monthly_mortgageP_I = compute_monthly_mortgage(max_loan_without_land_lease, interest_rate / 1200, loan_term * 12)
+    total_monthly_pay = home_insurance_monthly + property_tax_monthly + monthly_mortgageP_I + mortgage_insurance_monthly
+
+    monthly_lease =home_price * land_share * land_lease_rate / 12
+    mortgage_insurance_monthly_l = max_loan_with_land_lease * PMI_rate / 1200
+    home_insurance_monthly_l = home_price * home_insurance_rate_monthly
+    property_tax_monthly_l = home_price * property_tax_rate_month
+    monthly_mortgageP_I_l = compute_monthly_mortgage(max_loan_with_land_lease, interest_rate / 1200, loan_term * 12)
+    total_monthly_pay_l = home_insurance_monthly_l + property_tax_monthly_l + monthly_mortgageP_I_l + mortgage_insurance_monthly_l + monthly_lease
+    monthly_pay_saving_p = 100 * (
+        total_monthly_pay- total_monthly_pay_l  ) / total_monthly_pay
+    monthly_pay_saving = -(total_monthly_pay_l - total_monthly_pay)
+
+    st.markdown(
+        f"<h3>Based on your inputs, with land lease program, your initial monthly payment saving is ${int(monthly_pay_saving):,} ({monthly_pay_saving_p/100:.2%} )see table below for details:</h3>",
+        unsafe_allow_html=True
+    )
+
+    #st.write("Initial monthly_pay_saving and percentage( %)", monthly_pay_saving, monthly_pay_saving_p )
+    #st.write("DTI Front and DTI Back", round(tota/(annual_income/12),6), round((total_monthly_pay_with_lease+monthly_debt)/(annual_income/12),6))
+    data = {"":["Home Price", "Loan Amount", "down payment", "Total monthly payment", "PMI Monthly", "Home Insurance", "Property Tax Monthly", "Mortgage P&I", "Land Lease Monthly"],
+            "Without Land Lease":[int(home_price),int(max_loan_without_land_lease),int(home_price * down_payment_percent),
+                                  int(total_monthly_pay),int(mortgage_insurance_monthly),int(home_insurance_monthly),int(property_tax_monthly),int(monthly_mortgageP_I),0],
+             "With Land Lease":[int(home_price),int(max_loan_with_land_lease),int(home_price * down_payment_percent),
+                                    int(total_monthly_pay_l),int(mortgage_insurance_monthly_l),int(home_insurance_monthly_l),int(property_tax_monthly_l),int(monthly_mortgageP_I_l),int(monthly_lease)
+                                ]
+            }
+
+    df = pd.DataFrame(data)
+    st.write(df.to_html(index=False), unsafe_allow_html=True)
+
+    if st.button("Show Lease Payment Schedule"):
+
+        leasepay_schedule= generate_leasepay_schedule(home_price*land_share,land_lease_rate,0.01, 10)
+        df = pd.DataFrame(leasepay_schedule)
+        # format df's first two columns to integer
+
+        for col in df.columns[:4]:
+            df[col] = df[col].astype(int)
+
+        st.write(df.to_html(index=False), unsafe_allow_html=True)
+    else:
+        st.write("Please click the button to show lease payment schedule")
+    st.write(
+        "***Disclaimer: This calculator is offered for illustrative and educational purposes only and it is not intended to replace a professional estimate. Calculator results do not reflect all loan types and are subject to individual program loan limits. All calculations and costs are estimates and therefore, Terrapin Impact Partner does not make any guarantee or warranty (express or implied) that all possible costs have been included. The assumptions made here and the output of the calculator do not constitute a loan offer or solicitation, or financial or legal advice. Please connect with a loan professional for a formal estimate. Every effort is made to maintain accurate calculations; however, Terrapin assumes no liability to any third parties that rely on this information and is not responsible for the accuracy of rates, APRs or any other loan information factored in the calculations.")
 
 def property_land_value_app():
     st.title("Property and Land Values Checker")
