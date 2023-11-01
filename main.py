@@ -36,7 +36,7 @@ def authenticate():
     name, authentication_status, username = authenticator.login("Login", "sidebar")
     # st.write("name", name)
     # st.write("authentication_status", authentication_status)
-    # st.write("user", username)
+    st.write("user", username)
 
     if authentication_status == False:
         st.error("Username/password is incorrect")
@@ -53,19 +53,37 @@ def authenticate():
         # st.markdown(f"### {header_text1}")
         # st.image('2.jpg', caption='', width=300)
     if authentication_status:
-        return True
+        return True, username
     else:
-        return False
+        return False, None
 
 def main():
     st.set_page_config(layout="wide")
     # Add a choice prompt to select the app
-
-    if authenticate():
+    authenticated, username = authenticate()
+    if authenticated & (username != "GHYimpact"):
 
         app_choice = st.sidebar.radio("Select:", ("Tillt Affordability Calculator","Tillt Monthly Payment Calculator",
                                                   "Property and Land Value App","Denver land share by zip code",
                                                   "Denver listing examples"  ))
+
+        if app_choice == "Property and Land Value App":
+            property_land_value_app()
+        elif app_choice == "Replicate_Guild_Home_Affordability":
+            combined_home_affordability_app("Replicate_Guild_Home_Affordability", False)
+        elif app_choice == "Tillt Affordability Calculator":
+            combined_home_affordability_app("Tillt Affordability Calculator", True)
+        elif app_choice == "Tillt Monthly Payment Calculator":
+            home_affordability_payment_app()
+        elif app_choice == "Denver land share by zip code":
+            property_zip_code()
+        elif app_choice == "Denver listing examples":
+            property_land_value_app_cached()
+    if authenticated & (username == "GHYimpact"):
+
+        app_choice = st.sidebar.radio("Select:", ("Tillt Affordability Calculator","Tillt Monthly Payment Calculator",
+                                                  "Property and Land Value App","Denver land share by zip code",
+                                                  "Denver listing examples" ,"Update release rate app"  ))
 
         if app_choice == "Property and Land Value App":
             property_land_value_app()
@@ -188,8 +206,8 @@ def property_land_value_app():
     # Prompt user to enter the password
     password = st.text_input("Enter your password:(email ghyproductteam@ghyimpact.com for password)", type="password")
 
-    address_line_1 = st.text_input("Enter Address Line 1 like 517 N Chugach St:")
-    zip_code = st.text_input("Enter Zip Code:")
+    address_line_1 = st.text_input("Enter Address Line 1 like 517 N Chugach St:", "517 N Chugach St")
+    zip_code = st.text_input("Enter Zip Code:", "99645")
 
 # Display a Submit button
     if st.button("Submit"):
@@ -206,12 +224,12 @@ def property_land_value_app():
                 'address': address,
                 'zip_code': zip_code,
                 'land share': round(land_val[0]['property/land_value']['result']['land_value']['value_mean']/prop_val[0]['property/value']['result']['value']['price_mean'],3),
-                'land_value_mean': land_val[0]['property/land_value']['result']['land_value']['value_mean'],
-                'land_value_upr': land_val[0]['property/land_value']['result']['land_value']['value_upr'],
-                'land_value_lwr': land_val[0]['property/land_value']['result']['land_value']['value_lwr'],
-                'property_value_mean': prop_val[0]['property/value']['result']['value']['price_mean'],
-                'property_value_upr': prop_val[0]['property/value']['result']['value']['price_upr'],
-                'property_value_lwr': prop_val[0]['property/value']['result']['value']['price_lwr'],
+               'land_value': land_val[0]['property/land_value']['result']['land_value']['value_mean'],
+               # 'land_value_upr': land_val[0]['property/land_value']['result']['land_value']['value_upr'],
+                #'land_value_lwr': land_val[0]['property/land_value']['result']['land_value']['value_lwr'],
+                'property_value': prop_val[0]['property/value']['result']['value']['price_mean'],
+               # 'property_value_upr': prop_val[0]['property/value']['result']['value']['price_upr'],
+               # 'property_value_lwr': prop_val[0]['property/value']['result']['value']['price_lwr'],
             }
             df = pd.DataFrame([data])
             df_T = df.T
