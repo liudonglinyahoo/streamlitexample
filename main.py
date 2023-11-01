@@ -7,7 +7,8 @@ from datetime import datetime
 from pathlib import Path
 # Define constants
 DEBUG = False
-username = "55Y1IHCUYC2L8DXJODDZ"
+apiusername = "55Y1IHCUYC2L8DXJODDZ"
+
 def authenticate():
     users = ["GuildLO1", "GuildLO2", "GHYimpact"]
     usernames = ["GuildLO1", "GuildLO2", "GHYimpact"]
@@ -36,7 +37,7 @@ def authenticate():
     name, authentication_status, username = authenticator.login("Login", "sidebar")
     # st.write("name", name)
     # st.write("authentication_status", authentication_status)
-    st.write("user", username)
+    st.write("You are login as", username)
 
     if authentication_status == False:
         st.error("Username/password is incorrect")
@@ -68,7 +69,7 @@ def main():
                                                   "Denver listing examples"  ))
 
         if app_choice == "Property and Land Value App":
-            property_land_value_app()
+            property_land_value_app(username)
         elif app_choice == "Replicate_Guild_Home_Affordability":
             combined_home_affordability_app("Replicate_Guild_Home_Affordability", False)
         elif app_choice == "Tillt Affordability Calculator":
@@ -200,14 +201,35 @@ def property_land_value_app_cached():
         st.write("Please click the button to show lease payment schedule")
     st.write(
         "***Disclaimer: This calculator is offered for illustrative and educational purposes only and it is not intended to replace a professional estimate. Calculator results do not reflect all loan types and are subject to individual program loan limits. All calculations and costs are estimates and therefore, Terrapin Impact Partner does not make any guarantee or warranty (express or implied) that all possible costs have been included. The assumptions made here and the output of the calculator do not constitute a loan offer or solicitation, or financial or legal advice. Please connect with a loan professional for a formal estimate. Every effort is made to maintain accurate calculations; however, Terrapin assumes no liability to any third parties that rely on this information and is not responsible for the accuracy of rates, APRs or any other loan information factored in the calculations.")
+def check_cache(address,zip_code):
+    # prompt user to select the addresses
+    url = "https://s3.amazonaws.com/donglintonyliu.click/merged_zillow_hcloandshare.csv"
 
-def property_land_value_app():
+    # Read the CSV file into a DataFrame
+    df = pd.read_csv(url)
+    filtered_df = df[(df['streetName'] == address) & (df['zipcode'] == int(zip_code))]
+
+    # If the filtered dataframe is not empty, return the values
+    if not filtered_df.empty:
+        price = filtered_df['price'].iloc[0]
+        land_value_mean = filtered_df['Land Value - Value Mean'].iloc[0]
+        Land_Share_of_Property = filtered_df['Land_Share_of_Property'].iloc[0]
+        Land_finance = filtered_df['Land_finance'].iloc[0]
+        land_share =Land_finance/price
+
+        #st.write("Price:", price, "Land finance:", Land_finance,"land_share:",land_share)
+        return price, land_share, Land_Share_of_Property,Land_finance
+    else:
+        st.write("No data found for the selected address")
+        return None,None,None
+
+def property_land_value_app(username):
     st.title("Property and Land Values Checker")
     # Prompt user to enter the password
     password = st.text_input("Enter your password:(email ghyproductteam@ghyimpact.com for password)", type="password")
 
-    address_line_1 = st.text_input("Enter Address Line 1 like 517 N Chugach St:", "517 N Chugach St")
-    zip_code = st.text_input("Enter Zip Code:", "99645")
+    address_line_1 = st.text_input("Enter Address Line 1:", "43 S Perry St")
+    zip_code = st.text_input("Enter Zip Code:", "80219")
 
 # Display a Submit button
     if st.button("Submit"):
@@ -216,42 +238,62 @@ def property_land_value_app():
         address= address_line_1
         zip_code = zip_code
         # Process the selected address
-        prop_val = get_property_data('value', address, zip_code, password)
-        land_val = get_property_data('land_value', address, zip_code, password)
-    # Assuming property and land value APIs return consistent data
-        if prop_val and land_val and prop_val[0]['property/value']['api_code']==0 and land_val[0]['property/land_value']['api_code']==0:
-            data = {
-                'address': address,
-                'zip_code': zip_code,
-                'land share': round(land_val[0]['property/land_value']['result']['land_value']['value_mean']/prop_val[0]['property/value']['result']['value']['price_mean'],3),
-               'land_value': land_val[0]['property/land_value']['result']['land_value']['value_mean'],
-               # 'land_value_upr': land_val[0]['property/land_value']['result']['land_value']['value_upr'],
-                #'land_value_lwr': land_val[0]['property/land_value']['result']['land_value']['value_lwr'],
-                'property_value': prop_val[0]['property/value']['result']['value']['price_mean'],
-               # 'property_value_upr': prop_val[0]['property/value']['result']['value']['price_upr'],
-               # 'property_value_lwr': prop_val[0]['property/value']['result']['value']['price_lwr'],
-            }
-            df = pd.DataFrame([data])
-            df_T = df.T
-            st.table(df_T)
-            link = "https://www.google.com/search?q="
-            link += address.replace(" ", "+") + "+" + zip_code
-            link += "+zillow"
-            st.markdown(link, unsafe_allow_html=True)
+         # if can find data in cache, return data from cache
+        if(username=="ghyimpact"):
+            st.write(username)
         else:
-            st.write("Error retrieving data. Please try again.")
-        flood_risk_val = get_property_data('flood', address, zip_code, password)
-        if flood_risk_val and flood_risk_val[0]['property/flood']['api_code']==0:
-            data = {
-                'address': address,
-                'zip_code': zip_code,
-                'flood_risk_date': flood_risk_val[0]['property/flood']['result']['effective_date'],
-                'flood_risk_zone': flood_risk_val[0]['property/flood']['result']['zone'],
-                'flood_risk': flood_risk_val[0]['property/flood']['result']['flood_risk']
-            }
-            df = pd.DataFrame([data])
-            df_T = df.T
-            st.table(df_T)
+            st.write("testglobal")
+        price, land_share, Land_Share_of_Property,land_finance = check_cache(address, zip_code)
+        if  price and land_share and Land_Share_of_Property and land_finance:
+             st.write( "Congrats! Address :" ,address,",", zip_code, "is supported by Terrapin Program!")
+             st.write("Terrapin is willing to purchase the land at this address at ", land_finance,"$")
+             st.write("Your estimated land lease rate as of today is  ", 4.75, "percent")
+
+        else:
+            st.write("calling api")
+            prop_val = get_property_data('value', address, zip_code, password)
+            land_val = get_property_data('land_value', address, zip_code, password)
+        # Assuming property and land value APIs return consistent data
+
+            if prop_val and land_val and prop_val[0]['property/value']['api_code']==0 and land_val[0]['property/land_value']['api_code']==0:
+                data = {
+                    'address': address,
+                    'zip_code': zip_code,
+                    'land share': round(land_val[0]['property/land_value']['result']['land_value']['value_mean']/prop_val[0]['property/value']['result']['value']['price_mean'],3),
+                   'land_value': land_val[0]['property/land_value']['result']['land_value']['value_mean'],
+                        # 'land_value_upr': land_val[0]['property/land_value']['result']['land_value']['value_upr'],
+                        # 'land_value_lwr': land_val[0]['property/land_value']['result']['land_value']['value_lwr'],
+                    'property_value': prop_val[0]['property/value']['result']['value']['price_mean'],
+                   # 'property_value_upr': prop_val[0]['property/value']['result']['value']['price_upr'],
+                   # 'property_value_lwr': prop_val[0]['property/value']['result']['value']['price_lwr'],
+                }
+                land_finance =land_val[0]['property/land_value']['result']['land_value']['value_mean']
+                st.write("congrats! Address :", address, zip_code, "is supported by Terrapin Program!")
+                st.write("Terrapin would like to purchase the land of this address at ", land_finance)
+                st.write("You can lease the land at  ", 4.75, "percent")
+
+                df = pd.DataFrame([data])
+                df_T = df.T
+                #st.table(df_T)
+                link = "https://www.google.com/search?q="
+                link += address.replace(" ", "+") + "+" + zip_code
+                link += "+zillow"
+                st.markdown(link, unsafe_allow_html=True)
+            else:
+                st.write("Error retrieving data. Please try again.")
+
+            # flood_risk_val = get_property_data('flood', address, zip_code, password)
+            # if flood_risk_val and flood_risk_val[0]['property/flood']['api_code']==0:
+            #     data = {
+            #         'address': address,
+            #         'zip_code': zip_code,
+            #         'flood_risk_date': flood_risk_val[0]['property/flood']['result']['effective_date'],
+            #         'flood_risk_zone': flood_risk_val[0]['property/flood']['result']['zone'],
+            #         'flood_risk': flood_risk_val[0]['property/flood']['result']['flood_risk']
+            #     }
+            #     df = pd.DataFrame([data])
+            #     df_T = df.T
+            #     st.table(df_T)
 
     else:
         st.write(".")
@@ -350,7 +392,7 @@ def property_zip_code():
 
 def get_property_data(endpoint, address, zip_code, password):
     base_url = "https://api.housecanary.com/v2/property/"
-    auth = (username, password)
+    auth = (apiusername, password)
     params = {
         'address': address,
         'zipcode': zip_code,
