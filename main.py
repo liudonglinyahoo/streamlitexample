@@ -1,3 +1,5 @@
+import time
+
 import streamlit as st
 import requests
 import streamlit_authenticator as stauth  # pip install streamlit-authenticator
@@ -64,6 +66,7 @@ def main():
     authenticated, username = authenticate()
     if authenticated & (username != "GHYimpact"):
 
+
         app_choice = st.sidebar.radio("Select:", ("Tillt Affordability Calculator","Tillt Monthly Payment Calculator",
                                                   "Property and Land Value App","Denver land share by zip code",
                                                   "Denver listing examples"  ))
@@ -80,7 +83,7 @@ def main():
             property_zip_code()
         elif app_choice == "Denver listing examples":
             property_land_value_app_cached()
-    if authenticated & (username == "GHYimpact"):
+    if authenticated & (username == "ghyimpact"):
 
         app_choice = st.sidebar.radio("Select:", ("Tillt Affordability Calculator","Tillt Monthly Payment Calculator",
                                                   "Property and Land Value App","Denver land share by zip code",
@@ -98,9 +101,14 @@ def main():
             property_zip_code()
         elif app_choice == "Denver listing examples":
             property_land_value_app_cached()
+        elif app_choice == "Update release rate app":
+            update_releaserate_app()
 
     timenow = datetime.now()
     st.write('lastupdate', timenow)
+
+def update_releaserate_app():
+    st.write('lastupdate', time.clock())
 def property_land_value_app_cached():
     st.title("Property and Land Values examples")
     #load addresses and zip codes from csv file
@@ -364,27 +372,34 @@ def load_zipcode_data(zipcode):
             corresponding_landshare = 0.35
     return corresponding_landshare
 def property_zip_code():
+    today = datetime.today().strftime('%Y-%m-%d')
+
+    # Format the title with the current date and lease rate
+    lease_rate = 5.75
+    st.title(f"Your estimated land lease rate as of {today} is {lease_rate}%")
+    # today = datetime.today().strftime('%Y-%m-%d')
+    # st.title('As Of ', today)
+    # st.title("Your estimated land lease rate as of  5.75 percent")
     st.title("Property land share by zip code")
     # Prompt user to enter the password
     #password = st.text_input("Enter your email as password", type="password")
-
-    # address_line_1 = st.text_input("Enter Address Line 1 like 517 N Chugach St:")
     zip_code = st.number_input("Any Denver Zip code", min_value=80000, step=1, value=80001)
     st.write('You entered:', zip_code)
 
-    corresponding_landshare = load_zipcode_data(int(zip_code))
 
+    corresponding_landshare = load_zipcode_data(int(zip_code))
+    #st.write(corresponding_landshare)
     print(corresponding_landshare)
     if corresponding_landshare is not None:
         corresponding_landshare = float(corresponding_landshare)
         corresponding_landshare = round(corresponding_landshare, 2)
         if corresponding_landshare >0.35:
             corresponding_landshare = 0.35
-            st.write(f"Zip Code: {zip_code}, Our program will cover : {int(corresponding_landshare*100)} percent of the property value. Exmaple if the property value is 500,000, our program will cover ${int(corresponding_landshare*500000)}.")
+            st.write(f"Zip Code: {zip_code}, Our program will cover up to : {int(corresponding_landshare*100)} percent of the property value. Exmaple if the property value is 500,000, our program will cover ${int(corresponding_landshare*500000)}.")
         elif corresponding_landshare<0.15:
             st.write(f"Zip Code: {zip_code}, the land share is {corresponding_landshare}, which is too low for our program to make a meaningful impact.")
         else:
-            st.write(f"Zip Code: {zip_code}, Our program will cover Land Share: {corresponding_landshare}")
+            st.write(f"Zip Code: {zip_code}, Our program will cover Land Share up to: {corresponding_landshare*100}", "percent of the property value")
 
     else:
         st.write(f"Zip Code: {zip_code}, we don't have data for this zipcode. Please try another one.")
