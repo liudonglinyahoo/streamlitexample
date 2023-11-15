@@ -229,10 +229,11 @@ def check_cache(address,zip_code):
         return price, land_share, Land_Share_of_Property,Land_finance
     else:
         st.write("No data found for the selected address")
-        return None,None,None
+        return None,None,None,None
 
 def property_land_value_app(username):
     st.title("Property and Land Values Checker")
+    st.write("Only single-family, fee-simple, detached homes located in the Denver metro area are eligible. Duplexes, condos and townhomes are ineligible.")
     # Prompt user to enter the password
     password = st.text_input("Enter your password:(email ghyproductteam@ghyimpact.com for password)", type="password")
 
@@ -250,15 +251,17 @@ def property_land_value_app(username):
         if(username=="ghyimpact"):
             st.write(username)
         else:
-            st.write("testglobal")
+            st.write(username)
         price, land_share, Land_Share_of_Property,land_finance = check_cache(address, zip_code)
         if  price and land_share and Land_Share_of_Property and land_finance:
-             st.write( "Congrats! Address :" ,address,",", zip_code, "is supported by Terrapin Program!")
-             st.write("Terrapin is willing to purchase the land at this address at ", land_finance,"$")
-             st.write("Your estimated land lease rate as of today is  ", 4.75, "percent")
+            if Land_Share_of_Property>0.35:
+                land_share_of_property = 0.35
+            st.write( "Congrats! Address :" ,address,",", zip_code, "is supported by Terrapin Program!")
+            st.write("Terrapin is willing to purchase the land at this address at ", Land_Share_of_Property,"of the total property value. Extimated dollar Amount" ,price*land_share_of_property,"$")
+            st.write("Your estimated land lease rate as of today is  ", 5.75, "percent")
 
         else:
-            st.write("calling api")
+            st.write("trying to get data from another source")
             prop_val = get_property_data('value', address, zip_code, password)
             land_val = get_property_data('land_value', address, zip_code, password)
         # Assuming property and land value APIs return consistent data
@@ -288,7 +291,7 @@ def property_land_value_app(username):
                 link += "+zillow"
                 st.markdown(link, unsafe_allow_html=True)
             else:
-                st.write("Error retrieving data. Please try again.")
+                st.write("Error retrieving data. Please contact support")
 
             # flood_risk_val = get_property_data('flood', address, zip_code, password)
             # if flood_risk_val and flood_risk_val[0]['property/flood']['api_code']==0:
