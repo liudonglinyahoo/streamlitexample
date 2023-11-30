@@ -255,9 +255,9 @@ def property_land_value_app(username):
         price, land_share, Land_Share_of_Property,land_finance = check_cache(address, zip_code)
         if  price and land_share and Land_Share_of_Property and land_finance:
             if Land_Share_of_Property>0.35:
-                land_share_of_property = 0.35
+                Land_Share_of_Property = 0.35
             st.write( "Congrats! Address :" ,address,",", zip_code, "is supported by Terrapin Program!")
-            st.write("Terrapin is willing to purchase the land at this address at ", Land_Share_of_Property,"of the total property value. Extimated dollar Amount" ,price*land_share_of_property,"$")
+            st.write("Terrapin is willing to purchase the land at this address at ", Land_Share_of_Property,"of the total property value. Estimated dollar Amount =" ,price*Land_Share_of_Property,"$")
             st.write("Your estimated land lease rate as of today is  ", 5.75, "percent")
 
         else:
