@@ -232,7 +232,7 @@ def check_cache(address,zip_code):
         return None,None,None,None
 
 def property_land_value_app(username):
-    st.title("Property and Land Values Checker")
+    st.title("Property and Land Value Checker")
     st.write("Only single-family, fee-simple, detached homes located in the Denver metro area are eligible. Duplexes, condos and townhomes are ineligible.")
     # Prompt user to enter the password
     password = st.text_input("Enter your password:(email ghyproductteam@ghyimpact.com for password)", type="password")
