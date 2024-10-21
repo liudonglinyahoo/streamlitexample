@@ -67,7 +67,7 @@ def main():
     if authenticated & (username != "GHYimpact"):
 
 
-        app_choice = st.sidebar.radio("Select:", ("Tillt Affordability Calculator","Tillt Monthly Payment Calculator",
+        app_choice = st.sidebar.radio("Select:", ("Tillt Affordability Calculator1","Tillt Monthly Payment Calculator",
                                                   "Property and Land Value App","Denver land share by zip code",
                                                   "Denver listing examples"  ))
 
