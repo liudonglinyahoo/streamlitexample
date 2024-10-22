@@ -105,7 +105,7 @@ def main():
             update_releaserate_app()
 
     timenow = datetime.now()
-    st.write('lastupdate1', timenow)
+    st.write('lastupdate20241022', timenow)
 
 def update_releaserate_app():
     st.write('lastupdate', time.clock())
