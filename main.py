@@ -12,6 +12,7 @@ DEBUG = False
 apiusername = "55Y1IHCUYC2L8DXJODDZ"
 
 def authenticate():
+    #name, authentication_status, username = authenticator.login("Login", "sidebar")
     users = ["GuildLO1", "GuildLO2", "GHYimpact"]
     usernames = ["GuildLO1", "GuildLO2", "GHYimpact"]
     # st.write(users)
@@ -36,7 +37,7 @@ def authenticate():
 
     authenticator = stauth.Authenticate(credentials, "cokkie_name", "random_key", cookie_expiry_days=0.1)
     # can be main or sidebar
-    name, authentication_status, username = authenticator.login("Login", "sidebar")
+    name, authentication_status, username = authenticator.login("Login", "main")
     # st.write("name", name)
     # st.write("authentication_status", authentication_status)
     st.write("You are login as", username)
