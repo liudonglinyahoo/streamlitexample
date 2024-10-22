@@ -46,16 +46,10 @@ def authenticate():
         st.error("Username/password is incorrect")
 
     if authentication_status == None:
-
         st.warning("Please enter your username and password")
-
         header_text = "The Tillt Program"
         header_text1 = "A Sustainable Home Buying Solution that Combines Affordability with Community"
 
-        #
-        # st.markdown(f"## {header_text}")
-        # st.markdown(f"### {header_text1}")
-        # st.image('2.jpg', caption='', width=300)
     if authentication_status:
         return True, username
     else:
@@ -66,18 +60,17 @@ def main():
     # Add a choice prompt to select the app
     authenticated, username = authenticate()
     if authenticated & (username != "GHYimpact"):
-
-
-        app_choice = st.sidebar.radio("Select:", ("Tillt Affordability Calculator","Tillt Monthly Payment Calculator",
+        app_choice = st.sidebar.radio("Select:", ("Tillt Affordability Calculator","Tillt Affordability Calculator 2","Tillt Monthly Payment Calculator",
                                                   "Property and Land Value App","Denver land share by zip code",
                                                   "Denver listing examples"  ))
-
         if app_choice == "Property and Land Value App":
             property_land_value_app(username)
         elif app_choice == "Replicate_Guild_Home_Affordability":
             combined_home_affordability_app("Replicate_Guild_Home_Affordability", False)
         elif app_choice == "Tillt Affordability Calculator":
             combined_home_affordability_app("Tillt Affordability Calculator", True)
+        elif app_choice == "Tillt Affordability Calculator 2":
+            combined_home_affordability_app("Tillt Affordability Calculator 2", True)
         elif app_choice == "Tillt Monthly Payment Calculator":
             home_affordability_payment_app()
         elif app_choice == "Denver land share by zip code":
@@ -85,11 +78,9 @@ def main():
         elif app_choice == "Denver listing examples":
             property_land_value_app_cached()
     if authenticated & (username == "ghyimpact"):
-
         app_choice = st.sidebar.radio("Select:", ("Tillt Affordability Calculator","Tillt Monthly Payment Calculator",
                                                   "Property and Land Value App","Denver land share by zip code",
                                                   "Denver listing examples" ,"Update release rate app"  ))
-
         if app_choice == "Property and Land Value App":
             property_land_value_app()
         elif app_choice == "Replicate_Guild_Home_Affordability":
@@ -104,7 +95,6 @@ def main():
             property_land_value_app_cached()
         elif app_choice == "Update release rate app":
             update_releaserate_app()
-
     timenow = datetime.now()
     st.write('lastupdate20241022', timenow)
 
@@ -112,25 +102,17 @@ def update_releaserate_app():
     st.write('lastupdate', time.clock())
 def property_land_value_app_cached():
     st.title("Property and Land Values examples")
-    #load addresses and zip codes from csv file
-
-    #prompt user to select the addresses
     url = "https://s3.amazonaws.com/donglintonyliu.click/merged_zillow_hcloandshare.csv"
-
     # Read the CSV file into a DataFrame
     df = pd.read_csv(url)
     addresses = list(zip(df['streetName'], df['zipcode'].astype(str)))
-
     # Print the DataFrame
     st.dataframe(df)
     selected_address = st.selectbox("Select an address:", addresses)
     st.write("You selected:", selected_address)
-
-
     street_name, zipcode = selected_address
     # Filter the dataframe based on the streetName and zipcode
     filtered_df = df[(df['streetName'] == street_name) & (df['zipcode'] == int(zipcode))]
-
     # If the filtered dataframe is not empty, return the values
     if not filtered_df.empty:
         price = filtered_df['price'].iloc[0]
@@ -438,7 +420,6 @@ def compute_monthly_payments(P_guess, LTV, PMI_rate, home_insurance_rate_monthly
     #if land_share and land_lease_rate is not provide then property_value = P_guess / LTV, otherwise property_value = (P_guess / LTV) / (1 - land_share )
     property_value = (P_guess / LTV) / (1 - land_share) if land_share else P_guess / LTV
     monthly_PMI = P_guess * PMI_rate/1200
-
     home_insurance_monthly = property_value * home_insurance_rate_monthly
     monthly_property_tax = property_value * property_tax_rate_month
     monthly_mortgage = compute_monthly_mortgage(P_guess, r, n)
@@ -458,7 +439,7 @@ def find_optimal_loan(principal_loan_amount, LTV, PMI_rate, home_insurance_rate_
     low = 0
     high = 20 * principal_loan_amount
     if DEBUG:
-        st.write("start guess!!!!!!!!!!!!!!!!!!withhigh, landshare", high,land_share)
+        st.write("start guess!!!!!!!!!!!!!!!!!!with high, landshare", high,land_share)
         print("find_optimal_loan called, inputs are:")
         print("principal_loan_amount, LTV, PMI_rate, home_insurance_rate_monthly, property_tax_rate_month, r, n, monthly_debt, DTI_backend,DTI_front, monthly_income, land_share, land_lease_rate")
         print(principal_loan_amount, LTV, PMI_rate, home_insurance_rate_monthly, property_tax_rate_month, r, n, monthly_debt, DTI_backend,DTI_front, monthly_income, land_share, land_lease_rate)
@@ -583,20 +564,6 @@ def combined_home_affordability_app(title, land_lease_flag):
 
         st.title("")
 
-        # variable_output = st.text_input("Enter some text", value="Streamlit is awesome")
-        # number = int(max_home_price_with_piti)
-        # numbers = str()
-        # variable_output = "$" +str({int(max_home_price_with_piti):,})
-        # font_size = st.slider("Enter a font size", 1, 300, value=30)
-        #
-        # html_str = f"""
-        # <style>
-        # p.a {{
-        #   font: bold {font_size}px Courier;
-        # }}
-        # </style>
-        # <p class="a">{variable_output}</p>
-        # """
 
         # st.markdown(html_str, unsafe_allow_html=True)
         st.markdown(
@@ -702,7 +669,7 @@ def home_affordability_payment_app():
     loan_term = st.sidebar.number_input("Loan Term (Years)", min_value=1, max_value=50, step=1, value=30)
     property_tax_rate = st.sidebar.number_input("property_tax_rate (%)", min_value=0.0, step=0.01,
                                                 value=1.0) / 100
-    PMI_rate = st.sidebar.number_input("PMI rate%", min_value=0.0, step=0.01, value=0.78)
+    PMI_rate = st.sidebar.number_input("PMI rate%", min_value=0.0, step=0.01, value=1.3)
     annual_home_insurance_rate = st.sidebar.number_input("Home insurance rate %", min_value=0.0000,
                                                          step=0.01, value=0.35) / 100
 
@@ -741,7 +708,7 @@ def home_affordability_payment_app():
     data = {"":["Home Price", "Loan Amount", "down payment", "Total monthly payment", "PMI Monthly", "Home Insurance", "Property Tax Monthly", "Mortgage P&I", "Land Lease Monthly"],
             "Without Land Lease":[int(home_price),int(max_loan_without_land_lease),int(home_price * down_payment_percent),
                                   int(total_monthly_pay),int(mortgage_insurance_monthly),int(home_insurance_monthly),int(property_tax_monthly),int(monthly_mortgageP_I),0],
-             "With Land Lease":[int(home_price),int(max_loan_with_land_lease),int(home_price * down_payment_percent),
+             "With Land Lease":[int(home_price),int(max_loan_with_land_lease),int(home_price* (1-land_share) * down_payment_percent),
                                     int(total_monthly_pay_l),int(mortgage_insurance_monthly_l),int(home_insurance_monthly_l),int(property_tax_monthly_l),int(monthly_mortgageP_I_l),int(monthly_lease)
                                 ]
             }
