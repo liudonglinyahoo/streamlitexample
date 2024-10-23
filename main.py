@@ -15,20 +15,11 @@ def authenticate():
     #name, authentication_status, username = authenticator.login("Login", "sidebar")
     users = ["GuildLO1", "GuildLO2", "GHYimpact"]
     usernames = ["GuildLO1", "GuildLO2", "GHYimpact"]
-    # st.write(users)
-    # loading passwords which are hashed
-    # if 'authentication_status' not in st.session_state:
-    #     st.session_state['authentication_status'] = False  # or whatever initial value you want
 
     file_path = Path(__file__).parent / "hashed_passwords.pkl"
     # st.write(file_path)
     with file_path.open("rb") as file:
         hashed_passwords = pickle.load(file)
-    #st.write(hashed_passwords)
-    # Create an Auth object
-    #  Authenticate( names,username,hashed_password,json_gen_token_cookie,random_key_to_hash_cokkie_signature,number_of_days_cokkie_can_be_used_for)
-    # authenticator = stauth.Authenticate(users, usernames, hashed_passwords, "demo_auth", "rkey1", cookie_expiry_days=10)
-
     credentials = {"usernames": {}}
 
     for uname, name, pwd in zip(usernames, users, hashed_passwords):
@@ -38,13 +29,9 @@ def authenticate():
     authenticator = stauth.Authenticate(credentials, "cokkie_name", "random_key", cookie_expiry_days=0.1)
     # can be main or sidebar
     name, authentication_status, username = authenticator.login("Login", "main")
-    # st.write("name", name)
-    # st.write("authentication_status", authentication_status)
     st.write("You are login as", username)
-
     if authentication_status == False:
         st.error("Username/password is incorrect")
-
     if authentication_status == None:
         st.warning("Please enter your username and password")
         header_text = "The Tillt Program"
@@ -70,7 +57,7 @@ def main():
         elif app_choice == "Tillt Affordability Calculator":
             combined_home_affordability_app("Tillt Affordability Calculator", True)
         elif app_choice == "Tillt Affordability Calculator 2":
-            combined_home_affordability_app("Tillt Affordability Calculator 2", True)
+            combined_home_affordability_app2("Tillt Affordability Calculator 2", True)
         elif app_choice == "Tillt Monthly Payment Calculator":
             home_affordability_payment_app()
         elif app_choice == "Denver land share by zip code":
@@ -608,6 +595,8 @@ def combined_home_affordability_app(title, land_lease_flag):
 
     else:
         st.write("something wrong with your input, please check again")
+    st.write("downpaywithoutL", (max_home_price_without_land_lease-max_loan_without_land_lease)/max_home_price_without_land_lease,)
+    st.write("downpaywithL", (max_home_price_with_piti*0.65 - max_loan)/(max_home_price_with_piti*0.65))
 
     cpi = st.number_input("CPI assumption % for current year", min_value=0.0, step=0.1, value=2.0)
     st.markdown(
@@ -632,6 +621,180 @@ def combined_home_affordability_app(title, land_lease_flag):
              round((total_monthly_pay_with_lease + monthly_debt) / (annual_income / 12), 6))
 
     st.write("***Disclaimer: This calculator is offered for illustrative and educational purposes only and it is not intended to replace a professional estimate. Calculator results do not reflect all loan types and are subject to individual program loan limits. All calculations and costs are estimates and therefore, Terrapin Impact Partner does not make any guarantee or warranty (express or implied) that all possible costs have been included. The assumptions made here and the output of the calculator do not constitute a loan offer or solicitation, or financial or legal advice. Please connect with a loan professional for a formal estimate. Every effort is made to maintain accurate calculations; however, Terrapin assumes no liability to any third parties that rely on this information and is not responsible for the accuracy of rates, APRs or any other loan information factored in the calculations.")
+def combined_home_affordability_app2(title, land_lease_flag):
+    st.title(title)
+    # Given Guild's Max loan is X, and downpayment is 5%, then the max house price is x/0.95, and the
+    # Given Terrapin Max house price is Y, with 35% land share, the Max house price is Y*0.65 and the loan
+    # Input parameters based on the type of app
+    # You can customize these inputs based on your requirements
+    # st.write("calculation details. Start with a guess loan amount,"
+    #          "1.calculate monthly mortgage payment, and Mortgage insurance, "
+    #          "2.calculate the improvement using loan/LTV, "
+    #          "3.then calculate the overall property value using improvement/(1-landshare)"
+    #          "4.then calculate property tax and home insurance based on tax rate and insurance rate assumption"
+    #          "5. then calculate the lease amount based on land share and land lease rate"
+    #         "6. then calculate monthly payment using mortgage payment, property tax, home insurance and lease amount"
+    #          "7. then compare the monthly payment with DTI and monthly income to see if it is affordable"
+    #          "8. if not, decrease the loan amount and repeat the process until it is affordable")
+    if(land_lease_flag):
+        if(title=="Tillt Affordability Calculator"):
+            zipcode = st.sidebar.number_input("Zipcode", min_value=0, step=1, value=80002)
+            if(load_zipcode_data(zipcode) is not None):
+                    land_share =load_zipcode_data(int(zipcode))
+                    st.sidebar.write("In this zip code", int(zipcode),"Tillt program can support land value up to", int(land_share*100), "percent of property value")
+                    st.sidebar.write("Land Lease Rate (%)", 4.75)
+                    land_lease_rate =4.75/100
+            else:
+                st.write("Sorry, the property in this zipcode is not supported yet. Please try another zipcode")
+
+                return
+        else:
+            land_share = st.sidebar.number_input("Land Share", min_value=0, step=1, value=35)/100
+            land_lease_rate = st.sidebar.number_input("Land Lease Rate (%)", min_value=0.0, step=0.05, value=4.11)/100
+
+    st.sidebar.write("Please enter/update home buyer's information")
+    with st.sidebar:
+        col1, col2 = st.columns(2)
+
+        with col1:
+
+            annual_income = col1.number_input("Annual Income", min_value=0, step=500, value=120000)
+        with col2:
+            monthly_debt = col2.number_input("Monthly Debt", min_value=0, step=50, value=1200)
+    with st.sidebar:
+        with col1:
+            interest_rate = col1.number_input("Interest Rate (%)", min_value=0.0, step=0.1, value=6.5)
+
+        with col2:
+            loan_term =col2.number_input("Loan Term (Years)", min_value=1, max_value=50, step=1, value=30)
+
+
+    with st.sidebar:
+        with col1:
+            DTI_front = col1.number_input("Max Front-end DTI (%)", min_value=0.0, step=0.1, value=40.0)
+        with col2:
+            DTI_back = col2.number_input("Max Back-end DTI (%)", min_value=0.0, step=0.1, value=50.0)
+    #annual_income = st.sidebar.number_input("Annual Income", min_value=0, step=500, value=120000)
+    #monthly_debt = st.sidebar.number_input("Monthly Debt", min_value=0, step=50, value=1200)
+    # st.sidebar.write("Monthly Income:", annual_income / 12.0)
+    with st.sidebar:
+        with col1:
+            down_payment_percent = col1.number_input("Down Payment (%)", min_value=0.0, step=0.1, value=5.0) / 100
+        with col2:
+            property_tax_rate = col2.number_input("property_tax_rate (%)", min_value=0.0, step=0.01,
+                                                    value=0.0) / 100
+    with st.sidebar:
+        with col1:
+            PMI_rate = col1.number_input("PMI_rate", min_value=0.0, step=0.1, value=1.3)
+        with col2:
+            annual_home_insurance_rate = col2.number_input("Home Insurance Rate %", min_value=0.0000,
+                                                             step=0.01, value=0.0) / 100
+
+
+
+    LTV = 1 - down_payment_percent
+    property_tax_rate_month = property_tax_rate / 12
+    home_insurance_rate_monthly = annual_home_insurance_rate / 12
+
+    max_loan_without_land_lease = find_optimal_loan(500000, LTV, PMI_rate, home_insurance_rate_monthly,
+                                                    property_tax_rate_month, interest_rate / 1200, loan_term * 12,
+                                                    monthly_debt, DTI_back / 100, DTI_front / 100, annual_income / 12)
+    max_home_price_without_land_lease = max_loan_without_land_lease / LTV
+    if land_lease_flag == False:
+        st.write("without land lease: loan and home price", max_loan_without_land_lease, max_home_price_without_land_lease)
+        st.write("PMI_monthly", max_loan_without_land_lease * PMI_rate / 1200)
+        st.write("home insurance", max_home_price_without_land_lease * home_insurance_rate_monthly)
+        st.write("monthly_property_tax =", max_home_price_without_land_lease * property_tax_rate_month)
+        st.write("monthly_mortgageP&I", compute_monthly_mortgage(max_loan_without_land_lease, interest_rate / 1200, loan_term * 12))
+        st.write("loan", max_loan_without_land_lease)
+
+    if land_lease_flag:
+        max_loan = find_optimal_loan(500000, LTV, PMI_rate, home_insurance_rate_monthly,
+                                 property_tax_rate_month, interest_rate / 1200, loan_term * 12, monthly_debt,
+                                 DTI_back / 100, DTI_front / 100, annual_income / 12, land_share, land_lease_rate)
+        max_home_price_with_piti = (max_loan / LTV) / (1 - land_share)
+        #st.write("with lease: loan and home price are", max_loan, max_home_price_with_piti)
+        if max_loan > 0:
+            affordability = 100 * (
+                    max_home_price_with_piti - max_home_price_without_land_lease) / max_home_price_without_land_lease
+        else:
+            affordability = 0
+            st.write("based on your input, you can not afford any loan")
+
+
+        st.title("")
+
+
+        # st.markdown(html_str, unsafe_allow_html=True)
+        st.markdown(
+            f"<h3>Based on your inputs (on the left side), your maximum affordable home price with the Tillt land lease program is ${int(max_home_price_with_piti):,} </h3>",
+            unsafe_allow_html=True)
+
+        st.markdown(
+            f"<h3>In the absence of a land lease, using only a traditional 30-year fixed rate mortgage, your maximum available home price is ${int(max_home_price_without_land_lease):,}</h3>",
+            unsafe_allow_html=True)
+        st.markdown(
+            f"<h3>With the Tillt land lease program, your purchasing power has increased by {round(float(affordability), 2):,}%</h3>",
+            unsafe_allow_html=True)
+    if land_lease_flag:
+        total_monthly_pay = max_loan_without_land_lease * PMI_rate/1200 + max_home_price_without_land_lease * home_insurance_rate_monthly + max_home_price_without_land_lease * property_tax_rate_month+ compute_monthly_mortgage(max_loan_without_land_lease, interest_rate / 1200, loan_term * 12)
+        total_monthly_pay_with_lease = max_loan * PMI_rate/1200 + max_home_price_with_piti * home_insurance_rate_monthly + max_home_price_with_piti * property_tax_rate_month + max_home_price_with_piti * land_share * land_lease_rate / 12 + compute_monthly_mortgage(max_loan, interest_rate / 1200, loan_term * 12)
+
+        data1 = {
+            "": ["Home Price Affordable($)","Loan Amount($)",  "Total Monthly Payment($)", "Monthly Mortgage Insurance($)", "Monthly Home Insurance($)",
+                          "Monthly Property Tax($)", "Monthly Mortgage Principal&Interest($)", "Monthly Land Lease(S)"],
+            "Without Land Lease": [int(max_home_price_without_land_lease),
+                                   int(max_loan_without_land_lease),
+                                   int(total_monthly_pay),
+                                   int(max_loan_without_land_lease * PMI_rate/1200),
+                                   int(max_home_price_without_land_lease*home_insurance_rate_monthly),
+                                   int(max_home_price_without_land_lease*property_tax_rate_month),
+                                   int( compute_monthly_mortgage(max_loan_without_land_lease, interest_rate / 1200, loan_term * 12)),
+                                   0],
+            "With Land Lease": [int(max_home_price_with_piti),
+                                int(max_loan),
+                                int(total_monthly_pay_with_lease),
+                                int(max_loan * PMI_rate/1200),
+                                int(max_home_price_with_piti * home_insurance_rate_monthly),
+                                int(max_home_price_with_piti * property_tax_rate_month),
+                                int(compute_monthly_mortgage(max_loan, interest_rate / 1200, loan_term * 12)),
+                                int(max_home_price_with_piti * land_share * land_lease_rate / 12)
+                                ]
+        }
+        df1 = pd.DataFrame(data1)
+
+        st.write(df1.to_html(index=False), unsafe_allow_html=True)
+
+
+    else:
+        st.write("something wrong with your input, please check again")
+    st.write("downpaywithoutL", (max_home_price_without_land_lease-max_loan_without_land_lease)/max_home_price_without_land_lease,)
+    st.write("downpaywithL", (max_home_price_with_piti*0.65 - max_loan)/(max_home_price_with_piti*0.65))
+
+    cpi = st.number_input("CPI assumption % for current year", min_value=0.0, step=0.1, value=2.0)
+    st.markdown(
+            f"<h3>Illustrative 10-year Lease Payment Schedule with CPI assumption {cpi:,} percent</h3>",
+            unsafe_allow_html=True)
+    # st.write("Lease Payment Schedule for first 10 years")
+
+         #calculate monthly payment increase every 6 months and land price increase every 6 months
+    leasepay_schedule = generate_leasepay_schedule(land_share*max_home_price_with_piti, land_lease_rate, cpi/200, 10)
+    df = pd.DataFrame(leasepay_schedule)
+    #format df's first two columns to integer
+
+    for col in df.columns[0:2]:
+         df[col] = df[col].astype(int)
+
+    for col in df.columns[3:5]:
+        df[col] = df[col].astype(int)
+
+    st.write(df.to_html(index=False), unsafe_allow_html=True)
+    st.write("Calculated Front-end and Back-end DTI based on inputs",
+             round(total_monthly_pay_with_lease / (annual_income / 12), 6),
+             round((total_monthly_pay_with_lease + monthly_debt) / (annual_income / 12), 6))
+
+    st.write("***Disclaimer: This calculator is offered for illustrative and educational purposes only and it is not intended to replace a professional estimate. Calculator results do not reflect all loan types and are subject to individual program loan limits. All calculations and costs are estimates and therefore, Terrapin Impact Partner does not make any guarantee or warranty (express or implied) that all possible costs have been included. The assumptions made here and the output of the calculator do not constitute a loan offer or solicitation, or financial or legal advice. Please connect with a loan professional for a formal estimate. Every effort is made to maintain accurate calculations; however, Terrapin assumes no liability to any third parties that rely on this information and is not responsible for the accuracy of rates, APRs or any other loan information factored in the calculations.")
+
 
 
 def generate_leasepay_schedule(land_value, lease_rate, CPI_halfyear, years):
